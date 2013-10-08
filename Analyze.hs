@@ -7,18 +7,15 @@ import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.HashMap.Strict as M
 
+import Data.Functor
 import Data.Maybe
 import Data.List
 import Text.Printf
 import Control.Monad
 import System.Environment
 
-countIPs :: [L.ByteString] -> [(S.ByteString,Int)]
-countIPs = M.toList . foldl' count M.empty
-    where
-        count acc l = case AL.maybeResult $ AL.parse line l of
-            Just x  -> M.insertWith (+) (S.copy $ llIP x) 1 acc
-            Nothing -> acc
+parseLines :: [L.ByteString] -> [LogLine]
+parseLines = mapMaybe (AL.maybeResult . AL.parse line)
 
 main :: IO ()
 main = do
@@ -26,27 +23,32 @@ main = do
   dispatch cmd path
 
 type Command = String
+type Action = [LogLine] -> IO ()
 
 -- Looks up command in the list of actions, calls corresponding action.
 dispatch :: Command -> FilePath -> IO ()
-dispatch cmd path = action path
-    where
-        action = fromMaybe err (lookup cmd actions)
-        err    = \_ -> putStrLn $ "Error: " ++ cmd ++ " is not a valid command."
-                    
+dispatch cmd path =
+    action =<< parseLines . L.lines <$> L.readFile path
+  where
+    action = fromMaybe err (lookup cmd actions)
+    err    = \_ -> putStrLn $ "Error: " ++ cmd ++ " is not a valid command."
+
 -- Associative list of commands and actions.
-actions :: [(Command, FilePath -> IO ())]
+actions :: [(Command, Action)]
 actions = [
-    ("ips", mapToTopList countIPs)
-	]
+    ("ips", topList . countIPs)
+    ]
 
 -- Helper that turns a map into a top list, based on the second value.
-mapToTopList :: ([L.ByteString] -> [(S.ByteString, Int)]) -> FilePath -> IO ()
-mapToTopList f p = do
-    file <- liftM L.lines $ L.readFile p
+topList :: [(S.ByteString, Int)] -> IO ()
+topList =
     let mostPopular (_,a) (_,b) = compare b a
-        m = f file
-    mapM_ putStrLn . zipWith pretty [1..] . take 20 . sortBy mostPopular $ m
+    in mapM_ putStrLn . zipWith pretty [1..] . take 20 . sortBy mostPopular
+
+-- Calculate a list of IPs and their counts
+countIPs :: [LogLine] -> [(S.ByteString, Int)]
+countIPs = M.toList . foldl' count M.empty
+  where count acc x = M.insertWith (+) (S.copy $ llIP x) 1 acc
 
 -- Helper for printing the top list.
 pretty :: Show a => Int -> (a, Int) -> String
