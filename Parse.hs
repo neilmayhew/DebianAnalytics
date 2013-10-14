@@ -1,7 +1,14 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Parse where
 
 import Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as S
+
+import Network.HTTP
+import Network.URI
+
+import Data.Functor
 
 data LogLine = LogLine {
     llIP     :: S.ByteString,
@@ -62,3 +69,18 @@ line = do
     bytes <- plainValue
     (path,ua) <- option (S.empty,S.empty) combined
     return $ LogLine ip identity user date req status bytes path ua
+
+deriving instance Read RequestMethod
+
+request :: Parser Request_String
+request = do
+    method <- mkMethod . S.unpack <$> plainValue
+    space
+    uri' <- plainValue
+    case parseURIReference (S.unpack uri') of
+        Nothing -> fail ("Invalid URI: " ++ S.unpack uri')
+        Just uri -> return $ Request uri method [] ""
+  where
+    mkMethod s = case reads s of
+        [] -> Custom s
+        (method,_):_ -> method
