@@ -16,8 +16,10 @@ import Data.List
 import Data.Maybe
 import Text.Printf
 import Network.HTTP
+import Network.URI
 import Control.Monad
 import System.Environment
+import System.FilePath
 
 parseFile :: FilePath -> IO [LogLine]
 parseFile path = parseLines . L.lines <$> L.readFile path
@@ -45,6 +47,8 @@ dispatch cmd path =
 actions :: [(Command, Action)]
 actions = [
     ("ips",  topList . countFields . map (S.copy . llIP)),
+    ("urls", topList . countFields . filter notSvn . rights . map llPath),
+    ("debs", putList . sortList . countFields . filter isDeb . map takeFileName . rights . map llPath),
     ("bad",  badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
@@ -68,6 +72,10 @@ countFields :: (Show a, Eq a, Hashable a) => [a] -> [(a, Int)]
 countFields = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
 
+-- Log line filtering predicates
+notSvn = not . ("/svn/" `isPrefixOf`)
+isDeb = (== ".deb") . takeExtension
+
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
@@ -75,3 +83,7 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 -- Extract the request from a log line
 llRequest :: LogLine -> Either String Request_String
 llRequest = AS.parseOnly request . llReq
+
+-- Extract the path of a request
+llPath :: LogLine -> Either String String
+llPath = return . uriPath . rqURI <=< llRequest
