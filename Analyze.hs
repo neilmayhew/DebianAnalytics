@@ -3,16 +3,19 @@ module Main where
 import Parse
 
 import qualified Data.Attoparsec.Lazy as AL
+import qualified Data.Attoparsec.ByteString as AS
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.HashMap.Strict as M
 
+import Data.Either
 import Data.Functor
 import Data.Function
 import Data.Hashable
-import Data.Maybe
 import Data.List
+import Data.Maybe
 import Text.Printf
+import Network.HTTP
 import Control.Monad
 import System.Environment
 
@@ -41,7 +44,8 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions = [
-    ("ips",  topList . countFields . map (S.copy . llIP))]
+    ("ips",  topList . countFields . map (S.copy . llIP)),
+    ("bad",  badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
 topList = putList . take 20 . sortList
@@ -63,3 +67,11 @@ pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 countFields :: (Show a, Eq a, Hashable a) => [a] -> [(a, Int)]
 countFields = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
+
+-- Show just the bad requests
+badReqs :: [LogLine] -> IO ()
+badReqs = mapM_ putStrLn . lefts . map llRequest
+
+-- Extract the request from a log line
+llRequest :: LogLine -> Either String Request_String
+llRequest = AS.parseOnly request . llReq
