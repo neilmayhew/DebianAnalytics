@@ -14,6 +14,7 @@ import Data.Function
 import Data.Hashable
 import Data.List
 import Data.Maybe
+import Data.Tuple
 import Text.Printf
 import Network.HTTP
 import Network.URI
@@ -66,6 +67,10 @@ sortList = sortBy (flip compare `on` snd)
 pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
+groupCounts :: (Ord a, Hashable a) => [(a, Int)] -> [(Int, [a])]
+groupCounts = map combine . groupBy ((==) `on` fst) . sort . map swap
+  where combine g = (fst . head $ g, map snd g)
+
 -- Calculate a list of field values and their counts
 countFields :: (Eq a, Hashable a) => [a] -> [(a, Int)]
 countFields = M.toList . foldl' count M.empty
@@ -77,9 +82,20 @@ isDeb = (== ".deb") . takeExtension
 
 -- Count package downloads
 countDebs :: [String] -> IO ()
-countDebs = putList . sortList . countFields . map (head . parseDeb)
+countDebs debs = do
+    putStrLn $ "<html><head><style type='text/css'>"
+        ++ "table { border-collapse: collapse }"
+        ++ "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
+        ++ ".count { text-align: right }"
+        ++ ".packages { text-align: left }"
+        ++ "</style><body><table>"
+        ++ "<tr><th class='count'>Downloads</th><th class='packages'>Packages</th></tr>"
+    putCounts . reverse . groupCounts . countFields . map (head . parseDeb) $ debs
+    putStrLn "</table></body></html>"
   where
     parseDeb = split '_' . dropExtension
+    putCounts = mapM_ $ putStrLn . showGroup
+    showGroup (n, ps) = printf "<tr><td class='count'>%d</td><td class='packages'>%s</td></tr>" n (intercalate "<br/>" ps)
 
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
