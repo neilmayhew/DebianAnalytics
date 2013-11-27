@@ -48,7 +48,7 @@ actions :: [(Command, Action)]
 actions = [
     ("ips",  topList . countFields . map (S.copy . llIP)),
     ("urls", topList . countFields . filter notSvn . rights . map llPath),
-    ("debs", putList . sortList . countFields . filter isDeb . map takeFileName . rights . map llPath),
+    ("debs", countDebs . filter isDeb . map takeFileName . rights . map llPath),
     ("bad",  badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
@@ -76,6 +76,12 @@ countFields = M.toList . foldl' count M.empty
 notSvn = not . ("/svn/" `isPrefixOf`)
 isDeb = (== ".deb") . takeExtension
 
+-- Count package downloads
+countDebs :: [String] -> IO ()
+countDebs = putList . sortList . countFields . map (head . parseDeb)
+  where
+    parseDeb = split '_' . dropExtension
+
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
@@ -87,3 +93,10 @@ llRequest = AS.parseOnly request . llReq
 -- Extract the path of a request
 llPath :: LogLine -> Either String String
 llPath = return . uriPath . rqURI <=< llRequest
+
+-- Split a string on a character
+split :: Eq a => a -> [a] -> [[a]]
+split c [] = []
+split c s  = front : split c rest
+  where (front, rest') = span (/= c) s
+        rest = drop 1 rest
