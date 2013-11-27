@@ -22,7 +22,8 @@ import System.Environment
 import System.FilePath
 
 parseFile :: FilePath -> IO [LogLine]
-parseFile path = parseLines . L.lines <$> L.readFile path
+parseFile path = parseLines . L.lines <$> readPath
+  where readPath = if path == "-" then L.getContents else L.readFile path
 
 parseLines :: [L.ByteString] -> [LogLine]
 parseLines = mapMaybe (AL.maybeResult . AL.parse line)
