@@ -1,6 +1,6 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Parse (LogLine(..), line, request) where
+module Parse (LogLine(..), renderLine, lineParser, requestParser) where
 
 import Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as S
@@ -21,6 +21,12 @@ data LogLine = LogLine {
     llRef    :: S.ByteString,
     llUA     :: S.ByteString
 } deriving (Ord, Show, Eq)
+
+renderLine :: LogLine -> S.ByteString
+renderLine (LogLine ip id u d req s n ref ua) =
+        S.intercalate (S.singleton ' ') [ip,id,u,b d,q req,s,n,q ref,q ua]
+  where b v = S.concat [S.singleton '[', v, S.singleton ']']
+        q v = S.concat [S.singleton '"', v, S.singleton '"']
 
 quote, lbrack, rbrack :: Parser Char
 quote  = satisfy (== '\"')
@@ -52,8 +58,8 @@ combined = do
     ua <- quotedValue
     return (path,ua)
 
-line :: Parser LogLine
-line = do
+lineParser :: Parser LogLine
+lineParser = do
     ip <- plainValue
     space
     identity <- plainValue
@@ -72,8 +78,8 @@ line = do
 
 deriving instance Read RequestMethod
 
-request :: Parser (HTTPRequest String)
-request = do
+requestParser :: Parser (HTTPRequest String)
+requestParser = do
     method <- mkMethod . S.unpack <$> plainValue
     space
     uri' <- plainValue

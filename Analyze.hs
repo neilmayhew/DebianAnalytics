@@ -27,7 +27,7 @@ parseFile path = parseLines . L.lines <$> readPath
   where readPath = if path == "-" then L.getContents else L.readFile path
 
 parseLines :: [L.ByteString] -> [LogLine]
-parseLines = mapMaybe (AL.maybeResult . AL.parse line)
+parseLines = mapMaybe (AL.maybeResult . AL.parse lineParser)
 
 main :: IO ()
 main = do
@@ -103,7 +103,7 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Extract the request from a log line
 llRequest :: LogLine -> Either String Request_String
-llRequest = AS.parseOnly request . llReq
+llRequest = AS.parseOnly requestParser . llReq
 
 -- Extract the path of a request
 llPath :: LogLine -> Either String String
