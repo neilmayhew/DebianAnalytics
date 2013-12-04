@@ -1,6 +1,6 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Parse where
+module Parse (LogLine(..), line, request) where
 
 import Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString.Char8 as S
@@ -72,7 +72,7 @@ line = do
 
 deriving instance Read RequestMethod
 
-request :: Parser Request_String
+request :: Parser (HTTPRequest String)
 request = do
     method <- mkMethod . S.unpack <$> plainValue
     space
