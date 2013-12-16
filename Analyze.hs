@@ -112,9 +112,7 @@ countDebs debs = putStr . renderHtml . docTypeHtml $ do
             td ! class_ "count" $ do
                 toHtml $ show n
             td ! class_ "packages" $ do
-                forM_ ps $ \p -> do
-                    toHtml p
-                    br
+                sequence_ . intersperse br . map toHtml $ ps
 
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
