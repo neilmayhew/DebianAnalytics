@@ -1,6 +1,14 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Parse
+
+import Text.Blaze.Html4.Strict hiding (map, span, head)
+import Text.Blaze.Html4.Strict.Attributes hiding (span)
+import qualified Text.Blaze.Html4.Strict as H
+import qualified Text.Blaze.Html4.Strict.Attributes as A
+import Text.Blaze.Html.Renderer.Pretty
 
 import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.Attoparsec.ByteString as AS
@@ -82,20 +90,31 @@ isDeb = (== ".deb") . takeExtension
 
 -- Count package downloads
 countDebs :: [String] -> IO ()
-countDebs debs = do
-    putStrLn $ "<html><head><style type='text/css'>"
-        ++ "table { border-collapse: collapse }"
-        ++ "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
-        ++ ".count { text-align: right }"
-        ++ ".packages { text-align: left }"
-        ++ "</style><body><table>"
-        ++ "<tr><th class='count'>Downloads</th><th class='packages'>Packages</th></tr>"
-    putCounts . reverse . groupCounts . countFields . map (head . parseDeb) $ debs
-    putStrLn "</table></body></html>"
+countDebs debs = putStr . renderHtml . docTypeHtml $ do
+    H.head $ do
+        H.title "Analytics"
+        H.style ! A.type_ "text/css" $ do
+            "table { border-collapse: collapse }"
+            "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
+            ".count { text-align: right }"
+            ".packages { text-align: left }"
+    body $ do
+        table $ do
+            tr $ do
+                th ! class_ "count" $ "Downloads"
+                th ! class_ "packages" $ "Packages"
+            putCounts . reverse . groupCounts . countFields . map (head . parseDeb) $ debs
   where
     parseDeb = split '_' . dropExtension
-    putCounts = mapM_ $ putStrLn . showGroup
-    showGroup (n, ps) = printf "<tr><td class='count'>%d</td><td class='packages'>%s</td></tr>" n (intercalate "<br/>" ps)
+    putCounts = mapM_ showGroup
+    showGroup (n, ps) = do
+        tr $ do
+            td ! class_ "count" $ do
+                toHtml $ show n
+            td ! class_ "packages" $ do
+                forM_ ps $ \p -> do
+                    toHtml p
+                    br
 
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
