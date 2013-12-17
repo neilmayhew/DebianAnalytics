@@ -58,7 +58,7 @@ actions :: [(Command, Action)]
 actions = [
     ("ips",  topList . countFields . map (S.copy . llIP)),
     ("urls", topList . countFields . filter notSvn . rights . map llPath),
-    ("debs", countDebs . filter isDeb . map takeFileName . rights . map llPath),
+    ("debs", putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
     ("bad",  badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
@@ -84,13 +84,18 @@ countFields :: (Eq a, Hashable a) => [a] -> [(a, Int)]
 countFields = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
 
+-- Count package downloads
+countDebs :: [FilePath] -> [(Int, [String])]
+countDebs = groupCounts . countFields . map (head . parseDeb)
+  where parseDeb = split '_' . dropExtension
+
 -- Log line filtering predicates
 notSvn = not . ("/svn/" `isPrefixOf`)
 isDeb = (== ".deb") . takeExtension
 
--- Count package downloads
-countDebs :: [String] -> IO ()
-countDebs debs = putStr . renderHtml . docTypeHtml $ do
+-- List package downloads
+putDebs :: ToMarkup a => [(Int, [a])] -> IO ()
+putDebs groups = putStr . renderHtml . docTypeHtml $ do
     H.head $ do
         H.title "Analytics"
         H.style ! A.type_ "text/css" $ do
@@ -103,16 +108,12 @@ countDebs debs = putStr . renderHtml . docTypeHtml $ do
             tr $ do
                 th ! class_ "count" $ "Downloads"
                 th ! class_ "packages" $ "Packages"
-            putCounts . reverse . groupCounts . countFields . map (head . parseDeb) $ debs
-  where
-    parseDeb = split '_' . dropExtension
-    putCounts = mapM_ showGroup
-    showGroup (n, ps) = do
-        tr $ do
-            td ! class_ "count" $ do
-                toHtml $ show n
-            td ! class_ "packages" $ do
-                sequence_ . intersperse br . map toHtml $ ps
+            forM_ (reverse groups) $ \(n, ps) -> do
+                tr $ do
+                    td ! class_ "count" $ do
+                        toMarkup $ show n
+                    td ! class_ "packages" $ do
+                        sequence_ . intersperse br . map toMarkup $ ps
 
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
