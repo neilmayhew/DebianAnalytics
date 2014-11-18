@@ -1,3 +1,9 @@
+-- Perform one of several analyses of apache log files
+--
+-- Neil Mayhew - 2013-10-08
+--
+-- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where

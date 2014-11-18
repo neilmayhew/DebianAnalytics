@@ -1,3 +1,7 @@
+-- Filter apache log files by URI path
+--
+-- Neil Mayhew - 2013-12-04
+
 module Main where
 
 import Parse
