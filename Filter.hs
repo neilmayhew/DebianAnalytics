@@ -15,16 +15,11 @@ import Network.HTTP
 import Network.URI
 import System.Path.WildMatch
 
-import Data.Either
 import Data.Functor
-import Data.Function
-import Data.Hashable
 import Data.List
 import Data.Maybe
-import Data.Tuple
 import Control.Monad
 import System.Environment
-import System.FilePath
 
 main :: IO ()
 main = do
