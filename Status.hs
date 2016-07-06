@@ -22,7 +22,7 @@ main = do
     let result = filter desired input
     renderFile pathOut result
   where
-    desired l = S.head (llStatus l) == '4'
+    desired l = S.head (llStatus l) == '2'
 
 parseFile :: FilePath -> IO [LogLine]
 parseFile path = parseLines . L.lines <$> readPath
