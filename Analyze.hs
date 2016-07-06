@@ -62,10 +62,11 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions = [
-    ("ips",  topList . countFields . map (S.copy . llIP)),
-    ("urls", topList . countFields . filter notSvn . rights . map llPath),
-    ("debs", putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
-    ("bad",  badReqs)]
+    ("ips",    topList . countFields . map (S.copy . llIP)),
+    ("urls",   topList . countFields . filter notSvn . rights . map llPath),
+    ("debs",   putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
+    ("arches", putArches . countArches . filter isDeb . map takeFileName . rights . map llPath),
+    ("bad",    badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
 topList = putList . take 20 . sortList
@@ -95,6 +96,11 @@ countDebs :: [FilePath] -> [(Int, [String])]
 countDebs = groupCounts . countFields . map (head . parseDeb)
   where parseDeb = split '_' . dropExtension
 
+-- Count architectures
+countArches :: [FilePath] -> [(Int, [String])]
+countArches = groupCounts . countFields . map ((!!2) . parseDeb)
+  where parseDeb = split '_' . dropExtension
+
 -- Log line filtering predicates
 notSvn = not . ("/svn/" `isPrefixOf`)
 isDeb = (== ".deb") . takeExtension
@@ -121,6 +127,13 @@ putDebs groups = putStr . renderHtml . docTypeHtml $ do
                     td ! class_ "packages" $ do
                         sequence_ . intersperse br . map toMarkup $ ps
 
+-- List architectures
+putArches :: [(Int, [String])] -> IO ()
+putArches groups = do
+    let width = length . show . maximum . map fst $ groups
+    forM_ groups $ \(n, as) ->
+        putStrLn $ printf "%*d %s" width n (intercalate "," as)
+
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
@@ -138,4 +151,4 @@ split :: Eq a => a -> [a] -> [[a]]
 split c [] = []
 split c s  = front : split c rest
   where (front, rest') = span (/= c) s
-        rest = drop 1 rest
+        rest = drop 1 rest'
