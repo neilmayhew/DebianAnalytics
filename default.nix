@@ -2,7 +2,7 @@
 , hashable, HTTP, MissingH, network, network-uri, stdenv, unordered-containers
 }:
 mkDerivation {
-  pname = "Analytics";
+  pname = "DebianAnalytics";
   version = "0.1.0.0";
   src = ./.;
   isLibrary = false;

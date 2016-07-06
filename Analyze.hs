@@ -109,7 +109,7 @@ isDeb = (== ".deb") . takeExtension
 putDebs :: ToMarkup a => [(Int, [a])] -> IO ()
 putDebs groups = putStr . renderHtml . docTypeHtml $ do
     H.head $ do
-        H.title "Analytics"
+        H.title "DebianAnalytics"
         H.style ! A.type_ "text/css" $ do
             "table { border-collapse: collapse }"
             "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
