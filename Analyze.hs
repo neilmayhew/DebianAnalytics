@@ -28,10 +28,12 @@ import Data.Function
 import Data.Hashable
 import Data.List
 import Data.Maybe
+import Data.Ord (comparing)
 import Data.Tuple
 import Text.Printf
 import Network.HTTP
 import Network.URI
+import Control.Arrow (first, second, (&&&), (***))
 import Control.Monad
 import System.Environment
 import System.FilePath
@@ -65,7 +67,8 @@ actions = [
     ("ips",    topList . countFields . map (S.copy . llIP)),
     ("urls",   topList . countFields . filter notSvn . rights . map llPath),
     ("debs",   putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
-    ("arches", putArches . countArches . filter isDeb . map takeFileName . rights . map llPath),
+    ("users",  putArchUsers  . archUsers),
+    ("arches", putArchCounts . archCounts),
     ("bad",    badReqs)]
 
 topList :: Show a => [(a, Int)] -> IO ()
@@ -82,9 +85,9 @@ sortList = sortBy (flip compare `on` snd)
 pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
-groupCounts :: (Ord a, Hashable a) => [(a, Int)] -> [(Int, [a])]
-groupCounts = map combine . groupBy ((==) `on` fst) . sort . map swap
-  where combine g = (fst . head $ g, map snd g)
+groupFirsts :: (Ord a, Hashable a) => [(a, b)] -> [(a, [b])]
+groupFirsts = map combine . groupBy ((==) `on` fst) . sortBy (comparing fst)
+  where combine = fst . head &&& map snd
 
 -- Calculate a list of field values and their counts
 countFields :: (Eq a, Hashable a) => [a] -> [(a, Int)]
@@ -93,13 +96,29 @@ countFields = M.toList . foldl' count M.empty
 
 -- Count package downloads
 countDebs :: [FilePath] -> [(Int, [String])]
-countDebs = groupCounts . countFields . map (head . parseDeb)
+countDebs = groupFirsts . map swap . countFields . map (head . parseDeb)
   where parseDeb = split '_' . dropExtension
 
+type Arch = String
+type IP = String
+
 -- Count architectures
-countArches :: [FilePath] -> [(Int, [String])]
-countArches = groupCounts . countFields . map ((!!2) . parseDeb)
-  where parseDeb = split '_' . dropExtension
+archCounts :: [LogLine] -> [(Arch, Int)]
+archCounts = map (second length) . archUsers
+
+-- Unique users of architectures
+archUsers :: [LogLine] -> [(String, [IP])]
+archUsers = groupFirsts . nub . arches . indices
+  where
+    arches :: [(IP, FilePath)] -> [(Arch, IP)]
+    arches = map (swap . second arch)
+    arch :: FilePath -> Arch
+    arch = fromMaybe "?" . stripPrefix "binary-" . takeFileName . takeDirectory
+    indices :: [LogLine] -> [(IP, FilePath)]
+    indices = filter (isIndex . snd) . rights . map ipAndPath . filter isDownload
+    isIndex = (=="Packages") . takeBaseName
+    ipAndPath l = (,) (S.unpack $ llIP l) <$> llPath l
+    isDownload l = S.head (llStatus l) == '2'
 
 -- Log line filtering predicates
 notSvn = not . ("/svn/" `isPrefixOf`)
@@ -127,12 +146,19 @@ putDebs groups = putStr . renderHtml . docTypeHtml $ do
                     td ! class_ "packages" $ do
                         sequence_ . intersperse br . map toMarkup $ ps
 
+-- List architecture users
+putArchUsers :: [(String, [IP])] -> IO ()
+putArchUsers arches = do
+    let width = maximum . map (length . fst) $ arches
+    forM_ arches $ \(a, ips) ->
+        putStrLn $ printf "%*s %s" width a (intercalate "," ips)
+
 -- List architectures
-putArches :: [(Int, [String])] -> IO ()
-putArches groups = do
-    let width = length . show . maximum . map fst $ groups
-    forM_ groups $ \(n, as) ->
-        putStrLn $ printf "%*d %s" width n (intercalate "," as)
+putArchCounts :: [(String, Int)] -> IO ()
+putArchCounts arches = do
+    let width = length . show . maximum . map snd $ arches
+    forM_ arches $ \(a, n) ->
+        putStrLn $ printf "%*d %s" width n a
 
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
