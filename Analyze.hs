@@ -104,7 +104,7 @@ data Deb = Deb
     } deriving (Eq, Ord, Show)
 
 parseDeb :: FilePath -> Deb
-parseDeb = toDeb . split '_' . dropExtension . takeFileName
+parseDeb = toDeb . split '_' . dropExtension . unEscapeString . takeFileName
   where toDeb [n, v, a] = Deb n v a
 
 -- Count deb downloads
