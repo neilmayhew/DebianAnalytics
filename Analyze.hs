@@ -66,7 +66,7 @@ actions :: [(Command, Action)]
 actions = [
     ("ips",    topList . countItems . map (S.copy . llIP)),
     ("urls",   topList . countItems . filter notSvn . rights . map llPath),
-    ("debs",   putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
+    ("debs",   putDebs       . debCounts),
     ("users",  putArchUsers  . archUsers),
     ("arches", putArchCounts . archCounts),
     ("bad",    badReqs)]
@@ -94,13 +94,25 @@ countItems :: (Eq a, Hashable a) => [a] -> [(a, Int)]
 countItems = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
 
--- Count package downloads
-countDebs :: [FilePath] -> [(Int, [String])]
-countDebs = groupFirsts . map swap . countItems . map (head . parseDeb)
-  where parseDeb = split '_' . dropExtension
-
 type Arch = String
 type IP = String
+
+data Deb = Deb
+    { debName    :: String
+    , debVersion :: String
+    , debArch    :: Arch
+    } deriving (Eq, Ord, Show)
+
+parseDeb :: FilePath -> Deb
+parseDeb = toDeb . split '_' . dropExtension . takeFileName
+  where toDeb [n, v, a] = Deb n v a
+
+-- Count deb downloads
+debCounts :: [LogLine] -> [(Int, [String])]
+debCounts = groupFirsts . map swap . countItems . map debName . debs
+  where
+    debs :: [LogLine] -> [Deb]
+    debs = map parseDeb . filter isDeb . rights . map llPath . filter isDownload
 
 -- Count architectures
 archCounts :: [LogLine] -> [(Arch, Int)]
@@ -116,13 +128,13 @@ archUsers = groupFirsts . nub . arches . indices
     arch = fromMaybe "?" . stripPrefix "binary-" . takeFileName . takeDirectory
     indices :: [LogLine] -> [(IP, FilePath)]
     indices = filter (isIndex . snd) . rights . map ipAndPath . filter isDownload
-    isIndex = (=="Packages") . takeBaseName
     ipAndPath l = (,) (S.unpack $ llIP l) <$> llPath l
-    isDownload l = S.head (llStatus l) == '2'
 
 -- Log line filtering predicates
+isDownload = (=='2') . S.head . llStatus
 notSvn = not . ("/svn/" `isPrefixOf`)
-isDeb = (== ".deb") . takeExtension
+isDeb = (==".deb") . takeExtension
+isIndex = (=="Packages") . takeBaseName
 
 -- List package downloads
 putDebs :: ToMarkup a => [(Int, [a])] -> IO ()
