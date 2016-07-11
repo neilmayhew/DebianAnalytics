@@ -11,7 +11,7 @@ On Debian/Ubuntu, all of the build dependencies exist as pre-built OS packages. 
 ```Bash
 sudo apt-get install -y --no-install-recommends \
     ghc cabal-install \
-    libghc-{attoparsec,blaze-html,hashable,http,missingh}-dev \
+    libghc-{attoparsec,blaze-html,debian,hashable,http,missingh}-dev \
     libghc-{network,network-uri,unordered-containers}-dev
 
 cabal configure

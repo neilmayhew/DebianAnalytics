@@ -1,4 +1,4 @@
-{ mkDerivation, attoparsec, base, blaze-html, bytestring, filepath
+{ mkDerivation, attoparsec, base, blaze-html, bytestring, debian, filepath
 , hashable, HTTP, MissingH, network, network-uri, stdenv, unordered-containers
 }:
 mkDerivation {
@@ -8,7 +8,7 @@ mkDerivation {
   isLibrary = false;
   isExecutable = true;
   executableHaskellDepends = [
-    attoparsec base blaze-html bytestring filepath hashable HTTP
+    attoparsec base blaze-html bytestring debian filepath hashable HTTP
     MissingH network network-uri unordered-containers
   ];
   description = "Analyze apache log files from a Debian repo";

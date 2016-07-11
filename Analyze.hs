@@ -4,7 +4,7 @@
 --
 -- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
 
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric, CPP #-}
 
 module Main where
 
@@ -31,6 +31,7 @@ import Data.Maybe
 import Data.Ord (comparing)
 import Data.String (fromString)
 import Data.Tuple
+import Debian.Version (DebianVersion, parseDebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
 import Text.Printf
 import Network.HTTP
@@ -39,6 +40,12 @@ import Control.Arrow (first, second, (&&&), (***))
 import Control.Monad
 import System.Environment
 import System.FilePath
+
+#if !MIN_VERSION_debian(3,89,0)
+parseDebianVersion' = parseDebianVersion
+#else
+import Debian.Version (parseDebianVersion')
+#endif
 
 parseFile :: FilePath -> IO [LogLine]
 parseFile path = parseLines . L.lines <$> readPath
@@ -101,15 +108,18 @@ type IP = String
 
 data Deb = Deb
     { debName    :: String
-    , debVersion :: String
+    , debVersion :: DebianVersion
     , debArch    :: Arch
     } deriving (Eq, Ord, Show, Generic)
+
+instance Hashable DebianVersion where
+    hashWithSalt n = hashWithSalt n . show . prettyDebianVersion
 
 instance Hashable Deb
 
 parseDeb :: FilePath -> Deb
 parseDeb = toDeb . split '_' . dropExtension . unEscapeString . takeFileName
-  where toDeb [n, v, a] = Deb n v a
+  where toDeb [n, v, a] = Deb n (parseDebianVersion' v) a
 
 -- Count deb downloads
 debs :: [LogLine] -> [Deb]
@@ -171,7 +181,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                 forM_ dcs $ \(d, n) -> do
                     tr $ do
                         td ! class_ "packages" $ do
-                            toMarkup $ debVersion d
+                            toMarkup $ show . prettyDebianVersion $ debVersion d
                         td ! class_ "packages" $ do
                             toMarkup $ debArch d
                         td ! class_ "count" $ do
