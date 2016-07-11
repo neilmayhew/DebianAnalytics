@@ -4,14 +4,14 @@
 --
 -- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
 module Main where
 
 import Parse
 
 import Text.Blaze.Html4.Strict hiding (map, span, head)
-import Text.Blaze.Html4.Strict.Attributes hiding (span)
+import Text.Blaze.Html4.Strict.Attributes hiding (span, id)
 import qualified Text.Blaze.Html4.Strict as H
 import qualified Text.Blaze.Html4.Strict.Attributes as A
 import Text.Blaze.Html.Renderer.Pretty
@@ -29,7 +29,9 @@ import Data.Hashable
 import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
+import Data.String (fromString)
 import Data.Tuple
+import GHC.Generics (Generic)
 import Text.Printf
 import Network.HTTP
 import Network.URI
@@ -66,7 +68,7 @@ actions :: [(Command, Action)]
 actions = [
     ("ips",    topList . countItems . map (S.copy . llIP)),
     ("urls",   topList . countItems . filter notSvn . rights . map llPath),
-    ("debs",   putDebs       . debCounts),
+    ("debs",   putDebs       . debs),
     ("users",  putArchUsers  . archUsers),
     ("arches", putArchCounts . archCounts),
     ("bad",    badReqs)]
@@ -101,18 +103,17 @@ data Deb = Deb
     { debName    :: String
     , debVersion :: String
     , debArch    :: Arch
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Show, Generic)
+
+instance Hashable Deb
 
 parseDeb :: FilePath -> Deb
 parseDeb = toDeb . split '_' . dropExtension . unEscapeString . takeFileName
   where toDeb [n, v, a] = Deb n v a
 
 -- Count deb downloads
-debCounts :: [LogLine] -> [(Int, [String])]
-debCounts = groupFirsts . map swap . countItems . map debName . debs
-  where
-    debs :: [LogLine] -> [Deb]
-    debs = map parseDeb . filter isDeb . rights . map llPath . filter isDownload
+debs :: [LogLine] -> [Deb]
+debs = map parseDeb . filter isDeb . rights . map llPath . filter isDownload
 
 -- Count architectures
 archCounts :: [LogLine] -> [(Arch, Int)]
@@ -137,11 +138,13 @@ isDeb = (==".deb") . takeExtension
 isIndex = (=="Packages") . takeBaseName
 
 -- List package downloads
-putDebs :: ToMarkup a => [(Int, [a])] -> IO ()
-putDebs groups = putStr . renderHtml . docTypeHtml $ do
+putDebs :: [Deb] -> IO ()
+putDebs debs = putStr . renderHtml . docTypeHtml $ do
+    let groups = groupFirsts . map swap . countItems . map debName $ debs
+        pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
     H.head $ do
         H.title "DebianAnalytics"
-        H.style ! A.type_ "text/css" $ do
+        H.style ! type_ "text/css" $ do
             "table { border-collapse: collapse }"
             "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
             ".count { text-align: right }"
@@ -156,7 +159,23 @@ putDebs groups = putStr . renderHtml . docTypeHtml $ do
                     td ! class_ "count" $ do
                         toMarkup $ show n
                     td ! class_ "packages" $ do
-                        sequence_ . intersperse br . map toMarkup $ ps
+                        let pkgref p = H.a ! href (fromString $ '#':p) $ toMarkup p
+                        sequence_ . intersperse br . map pkgref $ ps
+        forM_ pkgs $ \(name, dcs) -> do
+            p ! A.id (fromString name) $ H.b $ toMarkup name
+            table $ do
+                tr $ do
+                    th ! class_ "packages" $ "Version"
+                    th ! class_ "packages" $ "Arch"
+                    th ! class_ "count"    $ "Count"
+                forM_ dcs $ \(d, n) -> do
+                    tr $ do
+                        td ! class_ "packages" $ do
+                            toMarkup $ debVersion d
+                        td ! class_ "packages" $ do
+                            toMarkup $ debArch d
+                        td ! class_ "count" $ do
+                            toMarkup $ show n
 
 -- List architecture users
 putArchUsers :: [(String, [IP])] -> IO ()
