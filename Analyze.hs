@@ -85,8 +85,8 @@ sortList = sortBy (flip compare `on` snd)
 pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
-groupFirsts :: (Ord a, Hashable a) => [(a, b)] -> [(a, [b])]
-groupFirsts = map combine . groupBy ((==) `on` fst) . sortBy (comparing fst)
+groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, [b])]
+groupFirsts = map combine . groupBy ((==) `on` fst) . sort
   where combine = fst . head &&& map snd
 
 -- Calculate a list of field values and their counts
