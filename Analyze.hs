@@ -64,8 +64,8 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions = [
-    ("ips",    topList . countFields . map (S.copy . llIP)),
-    ("urls",   topList . countFields . filter notSvn . rights . map llPath),
+    ("ips",    topList . countItems . map (S.copy . llIP)),
+    ("urls",   topList . countItems . filter notSvn . rights . map llPath),
     ("debs",   putDebs . countDebs . filter isDeb . map takeFileName . rights . map llPath),
     ("users",  putArchUsers  . archUsers),
     ("arches", putArchCounts . archCounts),
@@ -89,14 +89,14 @@ groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, [b])]
 groupFirsts = map combine . groupBy ((==) `on` fst) . sort
   where combine = fst . head &&& map snd
 
--- Calculate a list of field values and their counts
-countFields :: (Eq a, Hashable a) => [a] -> [(a, Int)]
-countFields = M.toList . foldl' count M.empty
+-- Calculate a list of items and their counts
+countItems :: (Eq a, Hashable a) => [a] -> [(a, Int)]
+countItems = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
 
 -- Count package downloads
 countDebs :: [FilePath] -> [(Int, [String])]
-countDebs = groupFirsts . map swap . countFields . map (head . parseDeb)
+countDebs = groupFirsts . map swap . countItems . map (head . parseDeb)
   where parseDeb = split '_' . dropExtension
 
 type Arch = String
