@@ -160,6 +160,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
             ".count { text-align: right }"
             ".packages { text-align: left }"
+            ".unbordered { border: none; }"
     body $ do
         table $ do
             tr $ do
@@ -172,13 +173,14 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                     td ! class_ "packages" $ do
                         let pkgref p = H.a ! href (fromString $ '#':p) $ toMarkup p
                         sequence_ . intersperse br . map pkgref $ ps
-        forM_ pkgs $ \(name, dcs) -> do
-            p ! A.id (fromString name) $ H.b $ toMarkup name
-            let arches = nub . map (debArch . fst) $ dcs
-                versions = groupBy ((==) `on` debVersion . fst) dcs
-            table $ do
+        table $ do
+            forM_ pkgs $ \(name, dcs) -> do
+                let arches = nub . map (debArch . fst) $ dcs
+                    versions = groupBy ((==) `on` debVersion . fst) dcs
                 tr $ do
-                    th ! class_ "packages" $ "Version"
+                    th ! class_ "unbordered" ! A.id (fromString name) $ "\xa0"
+                tr $ do
+                    th ! class_ "packages" $ toMarkup name
                     forM_ arches $ \a -> do
                         th ! class_ "count" $ toMarkup a
                 forM_ versions $ \dcs -> do
