@@ -154,6 +154,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
         pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
     H.head $ do
         H.title "DebianAnalytics"
+        H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
         H.style ! type_ "text/css" $ do
             "table { border-collapse: collapse }"
             "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
