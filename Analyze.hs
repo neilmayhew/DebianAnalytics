@@ -168,25 +168,27 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             forM_ (reverse groups) $ \(n, ps) -> do
                 tr $ do
                     td ! class_ "count" $ do
-                        toMarkup $ show n
+                        toMarkup n
                     td ! class_ "packages" $ do
                         let pkgref p = H.a ! href (fromString $ '#':p) $ toMarkup p
                         sequence_ . intersperse br . map pkgref $ ps
         forM_ pkgs $ \(name, dcs) -> do
             p ! A.id (fromString name) $ H.b $ toMarkup name
+            let arches = nub . map (debArch . fst) $ dcs
+                versions = groupBy ((==) `on` debVersion . fst) dcs
             table $ do
                 tr $ do
                     th ! class_ "packages" $ "Version"
-                    th ! class_ "packages" $ "Arch"
-                    th ! class_ "count"    $ "Count"
-                forM_ dcs $ \(d, n) -> do
+                    forM_ arches $ \a -> do
+                        th ! class_ "count" $ toMarkup a
+                forM_ versions $ \dcs -> do
+                    let archdebs = map (first debArch) dcs
                     tr $ do
                         td ! class_ "packages" $ do
-                            toMarkup $ show . prettyDebianVersion $ debVersion d
-                        td ! class_ "packages" $ do
-                            toMarkup $ debArch d
-                        td ! class_ "count" $ do
-                            toMarkup $ show n
+                            toMarkup . show . prettyDebianVersion . debVersion . fst . head $ dcs
+                        forM_ arches $ \a -> do
+                            td ! class_ "count" $ do
+                                toMarkup . fromMaybe 0 $ lookup a archdebs
 
 -- List architecture users
 putArchUsers :: [(String, [IP])] -> IO ()
