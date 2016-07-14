@@ -88,11 +88,11 @@ requestParser :: Parser (HTTPRequest String)
 requestParser = do
     method <- mkMethod . S.unpack <$> plainValue
     space
-    uri' <- plainValue
-    case parseURIReference (S.unpack uri') of
-        Nothing -> fail ("Invalid URI: " ++ S.unpack uri')
-        Just uri -> return $ Request uri method [] ""
+    uri <- S.unpack <$> plainValue
+    case parseURIReference uri of
+        Nothing -> fail ("Invalid URI: " ++ uri)
+        Just u -> return $ Request u method [] ""
   where
     mkMethod s = case reads s of
-        [] -> Custom s
         (method,_):_ -> method
+        _            -> Custom s
