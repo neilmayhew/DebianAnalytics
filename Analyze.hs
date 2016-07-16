@@ -156,11 +156,33 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
         H.title "DebianAnalytics"
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
         H.style ! type_ "text/css" $ do
-            "table { border-collapse: collapse }"
-            "td, th { border: 1px solid; padding: 0.25em; vertical-align: top }"
-            ".count { text-align: right }"
+            "body {"
+            "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
+            "    font-size: 90%"
+            "}"
+            "table {"
+            "    border-collapse: collapse;"
+            "    margin: auto"
+            "}"
+            "td, th {"
+            "    border: 1pt solid #567;"
+            "    padding: 0.25em;"
+            "    vertical-align: top"
+            "}"
+            "th {"
+            "    background-color: #567;"
+            "    color: #FF8;"
+            "    font-weight: normal;"
+            "}"
+            "td {"
+            "    background-color: #E8F8FF;"
+            "}"
+            ":link, :visited {"
+            "    color: #249;"
+            "}"
+            ".count    { text-align: right }"
             ".packages { text-align: left }"
-            ".unbordered { border: none; }"
+            ".filler   { border: none; background-color: inherit }"
     body $ do
         table $ do
             tr $ do
@@ -178,7 +200,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                 let arches = nub . map (debArch . fst) $ dcs
                     versions = groupBy ((==) `on` debVersion . fst) dcs
                 tr $ do
-                    th ! class_ "unbordered" ! A.id (fromString name) $ "\xa0"
+                    th ! class_ "filler" ! A.id (fromString name) $ "\xa0"
                 tr $ do
                     th ! class_ "packages" $ toMarkup name
                     forM_ arches $ \a -> do
