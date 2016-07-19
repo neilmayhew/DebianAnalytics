@@ -1,5 +1,6 @@
-{ mkDerivation, attoparsec, base, blaze-html, bytestring, debian, filepath
-, hashable, HTTP, MissingH, network, network-uri, stdenv, unordered-containers
+{ stdenv, mkDerivation,
+    attoparsec, base, blaze-html, bytestring, debian, filepath, hashable,
+    HUnit, HTTP, MissingH, network, network-uri, unordered-containers
 }:
 mkDerivation {
   pname = "DebianAnalytics";
@@ -8,8 +9,8 @@ mkDerivation {
   isLibrary = false;
   isExecutable = true;
   executableHaskellDepends = [
-    attoparsec base blaze-html bytestring debian filepath hashable HTTP
-    MissingH network network-uri unordered-containers
+    attoparsec  base  blaze-html  bytestring  debian  filepath  hashable
+    HUnit  HTTP  MissingH  network  network-uri  unordered-containers
   ];
   description = "Analyze apache log files from a Debian repo";
   license = stdenv.lib.licenses.gpl3;

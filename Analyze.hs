@@ -9,6 +9,7 @@
 module Main where
 
 import Parse
+import Color
 
 import Text.Blaze.Html4.Strict hiding (map, span, head)
 import Text.Blaze.Html4.Strict.Attributes hiding (span, id)
@@ -155,35 +156,36 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
     H.head $ do
         H.title "DebianAnalytics"
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
-        H.style ! type_ "text/css" $ do
-            "body {"
-            "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
-            "    font-size: 90%;"
-            "}"
-            "table {"
-            "    border-collapse: collapse;"
-            "    margin: auto;"
-            "    color: #566973;" -- hsv(200,25,45)
-            "}"
-            "td, th {"
-            "    border: 1pt solid #566973;" -- hsv(200,25,45)
-            "    padding: 0.25em;"
-            "    vertical-align: top;"
-            "}"
-            "th {"
-            "    background-color: #566973;" -- hsv(200,25,45)
-            "    color: #FFFF80;" -- hsv(60,50,100)
-            "    font-weight: normal;"
-            "}"
-            "td {"
-            "    background-color: #EBF8FF;" -- hsv(200,8,100)
-            "}"
-            ":link, :visited {"
-            "    color: #175473;" -- hsv(200,80,45)
-            "}"
-            ".count    { text-align: right; }"
-            ".packages { text-align: left; }"
-            ".filler   { border: none; background-color: inherit; }"
+        H.style ! type_ "text/css" $ mapM_ toMarkup
+            [ "body {"
+            , "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
+            , "    font-size: 90%;"
+            , "}"
+            , "table {"
+            , "    border-collapse: collapse;"
+            , "    margin: auto;"
+            , "    color: "++hsv(200,25,45)++";"
+            , "}"
+            , "td, th {"
+            , "    border: 1pt solid "++hsv(200,25,45)++";"
+            , "    padding: 0.25em;"
+            , "    vertical-align: top;"
+            , "}"
+            , "th {"
+            , "    background-color: "++hsv(200,25,45)++";"
+            , "    color: "++hsv(60,50,100)++";"
+            , "    font-weight: normal;"
+            , "}"
+            , "td {"
+            , "    background-color: "++hsv(200,8,100)++";"
+            , "}"
+            , ":link, :visited {"
+            , "    color: "++hsv(200,80,45)++";"
+            , "}"
+            , ".count    { text-align: right; }"
+            , ".packages { text-align: left; }"
+            , ".filler   { border: none; background-color: inherit; }"
+            ]
     body $ do
         table $ do
             tr $ do
