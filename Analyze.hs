@@ -11,12 +11,11 @@ module Main where
 import Parse
 import Color
 
-import Text.Blaze.Html4.Strict hiding (map, span, head)
-import Text.Blaze.Html4.Strict.Attributes hiding (span, id)
-import qualified Text.Blaze.Html4.Strict as H
-import qualified Text.Blaze.Html4.Strict.Attributes as A
+import Text.Blaze.Html4.Strict (docTypeHtml, toMarkup, (!))
 import Text.Blaze.Html.Renderer.Pretty
 
+import qualified Text.Blaze.Html4.Strict as H
+import qualified Text.Blaze.Html4.Strict.Attributes as A
 import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.Attoparsec.ByteString as AS
 import qualified Data.ByteString.Char8 as S
@@ -156,7 +155,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
     H.head $ do
         H.title "DebianAnalytics"
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
-        H.style ! type_ "text/css" $ mapM_ toMarkup
+        H.style ! A.type_ "text/css" $ mapM_ toMarkup
             [ "body {"
             , "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
             , "    font-size: 90%;"
@@ -186,35 +185,35 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             , ".packages { text-align: left; }"
             , ".filler   { border: none; background-color: inherit; }"
             ]
-    body $ do
-        table $ do
-            tr $ do
-                th ! class_ "count" $ "Downloads"
-                th ! class_ "packages" $ "Packages"
+    H.body $ do
+        H.table $ do
+            H.tr $ do
+                H.th ! A.class_ "count" $ "Downloads"
+                H.th ! A.class_ "packages" $ "Packages"
             forM_ (reverse groups) $ \(n, ps) -> do
-                tr $ do
-                    td ! class_ "count" $ do
+                H.tr $ do
+                    H.td ! A.class_ "count" $ do
                         toMarkup n
-                    td ! class_ "packages" $ do
-                        let pkgref p = H.a ! href (fromString $ '#':p) $ toMarkup p
-                        sequence_ . intersperse br . map pkgref $ ps
-        table $ do
+                    H.td ! A.class_ "packages" $ do
+                        let pkgref p = H.a ! A.href (fromString $ '#':p) $ toMarkup p
+                        sequence_ . intersperse H.br . map pkgref $ ps
+        H.table $ do
             forM_ pkgs $ \(name, dcs) -> do
                 let arches = nub . map (debArch . fst) $ dcs
                     versions = groupBy ((==) `on` debVersion . fst) dcs
-                tr $ do
-                    th ! class_ "filler" ! A.id (fromString name) $ "\xa0"
-                tr $ do
-                    th ! class_ "packages" $ toMarkup name
+                H.tr $ do
+                    H.th ! A.class_ "filler" ! A.id (fromString name) $ "\xa0"
+                H.tr $ do
+                    H.th ! A.class_ "packages" $ toMarkup name
                     forM_ arches $ \a -> do
-                        th ! class_ "count" $ toMarkup a
+                        H.th ! A.class_ "count" $ toMarkup a
                 forM_ versions $ \dcs -> do
                     let archdebs = map (first debArch) dcs
-                    tr $ do
-                        td ! class_ "packages" $ do
+                    H.tr $ do
+                        H.td ! A.class_ "packages" $ do
                             toMarkup . show . prettyDebianVersion . debVersion . fst . head $ dcs
                         forM_ arches $ \a -> do
-                            td ! class_ "count" $ do
+                            H.td ! A.class_ "count" $ do
                                 toMarkup . fromMaybe 0 $ lookup a archdebs
 
 -- List architecture users
