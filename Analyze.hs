@@ -158,16 +158,16 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
         H.style ! type_ "text/css" $ do
             "body {"
             "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
-            "    font-size: 90%"
+            "    font-size: 90%;"
             "}"
             "table {"
             "    border-collapse: collapse;"
-            "    margin: auto"
+            "    margin: auto;"
             "}"
             "td, th {"
             "    border: 1pt solid #567;"
             "    padding: 0.25em;"
-            "    vertical-align: top"
+            "    vertical-align: top;"
             "}"
             "th {"
             "    background-color: #567;"
@@ -180,9 +180,9 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             ":link, :visited {"
             "    color: #249;"
             "}"
-            ".count    { text-align: right }"
-            ".packages { text-align: left }"
-            ".filler   { border: none; background-color: inherit }"
+            ".count    { text-align: right; }"
+            ".packages { text-align: left; }"
+            ".filler   { border: none; background-color: inherit; }"
     body $ do
         table $ do
             tr $ do
