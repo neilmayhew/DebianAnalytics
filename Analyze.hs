@@ -163,22 +163,23 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             "table {"
             "    border-collapse: collapse;"
             "    margin: auto;"
+            "    color: #566973;" -- hsv(200,25,45)
             "}"
             "td, th {"
-            "    border: 1pt solid #567;"
+            "    border: 1pt solid #566973;" -- hsv(200,25,45)
             "    padding: 0.25em;"
             "    vertical-align: top;"
             "}"
             "th {"
-            "    background-color: #567;"
-            "    color: #FF8;"
+            "    background-color: #566973;" -- hsv(200,25,45)
+            "    color: #FFFF80;" -- hsv(60,50,100)
             "    font-weight: normal;"
             "}"
             "td {"
-            "    background-color: #E8F8FF;"
+            "    background-color: #EBF8FF;" -- hsv(200,8,100)
             "}"
             ":link, :visited {"
-            "    color: #249;"
+            "    color: #175473;" -- hsv(200,80,45)
             "}"
             ".count    { text-align: right; }"
             ".packages { text-align: left; }"
