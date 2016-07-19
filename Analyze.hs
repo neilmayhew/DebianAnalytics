@@ -175,6 +175,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             , "    background-color: "++hsv(210,25,45)++";"
             , "    color: "++hsv(60,50,100)++";"
             , "    font-weight: normal;"
+            , "    font-size: 115%;"
             , "}"
             , "td {"
             , "    background-color: "++hsv(210,8,100)++";"
