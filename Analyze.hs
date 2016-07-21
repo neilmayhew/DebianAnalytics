@@ -162,6 +162,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             , "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
             , "    font-size: 90%;"
             , "    background-color: "++hsv(210,15,60)++";"
+            , "    margin: 0;"
             , "}"
             , "table {"
             , "    border-collapse: collapse;"
@@ -192,6 +193,8 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
     H.body $ do
         H.table $ do
             H.tr $ do
+                H.th ! A.class_ "filler" $ "\xa0"
+            H.tr $ do
                 H.th ! A.class_ "packages" $ "Arch"
                 H.th ! A.class_ "count" $ "Downloads"
             forM_ arches $ \(a, n) -> do
@@ -200,9 +203,9 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                         toMarkup a
                     H.td ! A.class_ "count" $ do
                         toMarkup n
+        H.table $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
-        H.table $ do
             H.tr $ do
                 H.th ! A.class_ "count" $ "Downloads"
                 H.th ! A.class_ "packages" $ "Packages"
@@ -231,6 +234,8 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                         forM_ arches $ \a -> do
                             H.td ! A.class_ "count" $ do
                                 toMarkup . fromMaybe 0 $ lookup a archdebs
+            H.tr $ do
+                H.th ! A.class_ "filler" $ "\xa0"
 
 -- List architecture users
 putArchUsers :: [(String, [IP])] -> IO ()
