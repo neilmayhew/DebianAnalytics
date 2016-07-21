@@ -202,7 +202,7 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
                         sequence_ . intersperse H.br . map pkgref $ ps
         H.table $ do
             forM_ pkgs $ \(name, dcs) -> do
-                let arches = nub . map (debArch . fst) $ dcs
+                let arches = sort . nub . map (debArch . fst) $ dcs
                     versions = groupBy ((==) `on` debVersion . fst) dcs
                 H.tr $ do
                     H.th ! A.class_ "filler" ! A.id (fromString name) $ "\xa0"
