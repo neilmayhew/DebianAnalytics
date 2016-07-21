@@ -153,6 +153,7 @@ putDebs :: [Deb] -> IO ()
 putDebs debs = putStr . renderHtml . docTypeHtml $ do
     let groups = groupFirsts . map swap . countItems . map debName $ debs
         pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
+        arches = sort . countItems . map debArch $ debs
     H.head $ do
         H.title "DebianAnalytics"
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
@@ -189,6 +190,18 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             , ".filler   { border: none; background-color: inherit; }"
             ]
     H.body $ do
+        H.table $ do
+            H.tr $ do
+                H.th ! A.class_ "packages" $ "Arch"
+                H.th ! A.class_ "count" $ "Downloads"
+            forM_ arches $ \(a, n) -> do
+                H.tr $ do
+                    H.td ! A.class_ "packages" $ do
+                        toMarkup a
+                    H.td ! A.class_ "count" $ do
+                        toMarkup n
+            H.tr $ do
+                H.th ! A.class_ "filler" $ "\xa0"
         H.table $ do
             H.tr $ do
                 H.th ! A.class_ "count" $ "Downloads"
