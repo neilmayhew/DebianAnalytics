@@ -30,6 +30,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
 import Data.String (fromString)
+import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale)
 import Data.Tuple
 import Debian.Version (DebianVersion, parseDebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
@@ -75,7 +76,7 @@ actions :: [(Command, Action)]
 actions = [
     ("ips",    topList . countItems . map (S.copy . llIP)),
     ("urls",   topList . countItems . filter notSvn . rights . map llPath),
-    ("debs",   putDebs       . debs),
+    ("debs",   putDebs),
     ("users",  putArchUsers  . archUsers),
     ("arches", putArchCounts . archCounts),
     ("bad",    badReqs)]
@@ -123,8 +124,8 @@ parseDeb = toDeb . split '_' . dropExtension . unEscapeString . takeFileName
         toDeb _         = Nothing
 
 -- Count deb downloads
-debs :: [LogLine] -> [Deb]
-debs = mapMaybe parseDeb . filter isDeb . rights . map llPath . filter isDownload
+extractDebs :: [LogLine] -> [Deb]
+extractDebs = mapMaybe parseDeb . filter isDeb . rights . map llPath . filter isDownload
 
 -- Count architectures
 archCounts :: [LogLine] -> [(Arch, Int)]
@@ -149,13 +150,17 @@ isDeb = (==".deb") . takeExtension
 isIndex = (=="Packages") . takeBaseName
 
 -- List package downloads
-putDebs :: [Deb] -> IO ()
-putDebs debs = putStr . renderHtml . docTypeHtml $ do
-    let groups = groupFirsts . map swap . countItems . map debName $ debs
+putDebs :: [LogLine] -> IO ()
+putDebs entries = putStr . renderHtml . docTypeHtml $ do
+    let (start, end) = (head &&& last) . map (utctDay . llTime) $ entries
+        llTime :: LogLine -> UTCTime
+        llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
+        debs = extractDebs entries
+        groups = groupFirsts . map swap . countItems . map debName $ debs
         pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
         arches = sort . countItems . map debArch $ debs
     H.head $ do
-        H.title "DebianAnalytics"
+        H.title $ toMarkup $ "DebianAnalytics: " ++ show start ++ " – " ++ show end
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
         H.style ! A.type_ "text/css" $ mapM_ toMarkup
             [ "body {"
@@ -186,11 +191,17 @@ putDebs debs = putStr . renderHtml . docTypeHtml $ do
             , ":link, :visited {"
             , "    color: "++hsv(210,80,45)++";"
             , "}"
+            , ".title    { font-size: 150%; }"
             , ".count    { text-align: right; }"
             , ".packages { text-align: left; }"
             , ".filler   { border: none; background-color: inherit; }"
             ]
     H.body $ do
+        H.table ! A.class_ "title" $ do
+            H.tr $ do
+                H.th ! A.class_ "filler" $ "\xa0"
+            H.tr $ do
+                H.th ! A.class_ "packages" $ toMarkup $ show start ++ " – " ++ show end
         H.table $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
