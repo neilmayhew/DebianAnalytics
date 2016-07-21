@@ -117,13 +117,14 @@ instance Hashable DebianVersion where
 
 instance Hashable Deb
 
-parseDeb :: FilePath -> Deb
+parseDeb :: FilePath -> Maybe Deb
 parseDeb = toDeb . split '_' . dropExtension . unEscapeString . takeFileName
-  where toDeb [n, v, a] = Deb n (parseDebianVersion' v) a
+  where toDeb [n, v, a] = Just $ Deb n (parseDebianVersion' v) a
+        toDeb _         = Nothing
 
 -- Count deb downloads
 debs :: [LogLine] -> [Deb]
-debs = map parseDeb . filter isDeb . rights . map llPath . filter isDownload
+debs = mapMaybe parseDeb . filter isDeb . rights . map llPath . filter isDownload
 
 -- Count architectures
 archCounts :: [LogLine] -> [(Arch, Int)]
