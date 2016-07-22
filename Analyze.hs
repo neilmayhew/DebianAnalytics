@@ -156,9 +156,9 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
         llTime :: LogLine -> UTCTime
         llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
         debs = extractDebs entries
+        arches = sort . countItems . map debArch $ debs
         groups = groupFirsts . map swap . countItems . map debName $ debs
         pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
-        arches = sort . countItems . map debArch $ debs
     H.head $ do
         H.title $ toMarkup $ "DebianAnalytics: " ++ show start ++ " – " ++ show end
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
@@ -167,12 +167,15 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             , "    font-family: \"Lucida Grande\", Verdana, Tahoma, sans-serif;"
             , "    font-size: 90%;"
             , "    background-color: "++hsv(210,15,60)++";"
+            , "    color: "++hsv(210,25,45)++";"
             , "    margin: 0;"
+            , "}"
+            , ":link, :visited {"
+            , "    color: "++hsv(210,80,45)++";"
             , "}"
             , "table {"
             , "    border-collapse: collapse;"
             , "    margin: auto;"
-            , "    color: "++hsv(210,25,45)++";"
             , "}"
             , "td, th {"
             , "    border: 1pt solid "++hsv(210,25,45)++";"
@@ -188,59 +191,57 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             , "td {"
             , "    background-color: "++hsv(210,8,100)++";"
             , "}"
-            , ":link, :visited {"
-            , "    color: "++hsv(210,80,45)++";"
             , "}"
-            , ".title    { font-size: 150%; }"
-            , ".count    { text-align: right; }"
-            , ".packages { text-align: left; }"
-            , ".filler   { border: none; background-color: inherit; }"
+            , ".title  { font-size: 150%; }"
+            , ".count  { text-align: right; }"
+            , ".name   { text-align: left; }"
+            , ".filler { border: none; background-color: inherit; }"
             ]
     H.body $ do
         H.table ! A.class_ "title" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
-                H.th ! A.class_ "packages" $ toMarkup $ show start ++ " – " ++ show end
-        H.table $ do
+                H.th ! A.class_ "name" $ toMarkup $ show start ++ " – " ++ show end
+        H.table ! A.class_ "arches" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
-                H.th ! A.class_ "packages" $ "Arch"
+                H.th ! A.class_ "name" $ "Arch"
                 H.th ! A.class_ "count" $ "Downloads"
             forM_ arches $ \(a, n) -> do
                 H.tr $ do
-                    H.td ! A.class_ "packages" $ do
+                    H.td ! A.class_ "name" $ do
                         toMarkup a
                     H.td ! A.class_ "count" $ do
                         toMarkup n
-        H.table $ do
+        H.table ! A.class_ "groups" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
                 H.th ! A.class_ "count" $ "Downloads"
-                H.th ! A.class_ "packages" $ "Packages"
+                H.th ! A.class_ "name" $ "Packages"
             forM_ (reverse groups) $ \(n, ps) -> do
                 H.tr $ do
                     H.td ! A.class_ "count" $ do
                         toMarkup n
-                    H.td ! A.class_ "packages" $ do
+                    H.td ! A.class_ "name" $ do
                         let pkgref p = H.a ! A.href (fromString $ '#':p) $ toMarkup p
                         sequence_ . intersperse H.br . map pkgref $ ps
-        H.table $ do
+        H.table ! A.class_ "packages" $ do
             forM_ pkgs $ \(name, dcs) -> do
                 let arches = sort . nub . map (debArch . fst) $ dcs
                     versions = groupBy ((==) `on` debVersion . fst) dcs
                 H.tr $ do
                     H.th ! A.class_ "filler" ! A.id (fromString name) $ "\xa0"
                 H.tr $ do
-                    H.th ! A.class_ "packages" $ toMarkup name
+                    H.th ! A.class_ "name" $ toMarkup name
                     forM_ arches $ \a -> do
                         H.th ! A.class_ "count" $ toMarkup a
                 forM_ versions $ \dcs -> do
                     let archdebs = map (first debArch) dcs
                     H.tr $ do
-                        H.td ! A.class_ "packages" $ do
+                        H.td ! A.class_ "name" $ do
                             toMarkup . show . prettyDebianVersion . debVersion . fst . head $ dcs
                         forM_ arches $ \a -> do
                             H.td ! A.class_ "count" $ do
