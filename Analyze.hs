@@ -191,6 +191,11 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             , "td {"
             , "    background-color: "++hsv(210,8,100)++";"
             , "}"
+            , ".arches td.count {"
+            , "    width: 6.5em;"
+            , "}"
+            , ".packages td.count {"
+            , "    width: 4em;"
             , "}"
             , ".title  { font-size: 150%; }"
             , ".count  { text-align: right; }"
@@ -209,12 +214,23 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             H.tr $ do
                 H.th ! A.class_ "name" $ "Arch"
                 H.th ! A.class_ "count" $ "Downloads"
+                H.th ! A.class_ "count" $ "Proportion"
+            let total = sum $ map snd arches
             forM_ arches $ \(a, n) -> do
                 H.tr $ do
                     H.td ! A.class_ "name" $ do
                         toMarkup a
                     H.td ! A.class_ "count" $ do
                         toMarkup n
+                    H.td ! A.class_ "count" $ do
+                        fromString $ printf "%.0f%%" (fromIntegral n / fromIntegral total * 100 :: Double)
+            H.tr $ do
+                H.td ! A.class_ "name" $ do
+                    "Total"
+                H.td ! A.class_ "count" $ do
+                    toMarkup total
+                H.td ! A.class_ "count" $ do
+                    "100%"
         H.table ! A.class_ "groups" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
