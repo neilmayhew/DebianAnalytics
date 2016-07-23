@@ -30,7 +30,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
 import Data.String (fromString)
-import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale)
+import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale, diffUTCTime)
 import Data.Tuple
 import Debian.Version (DebianVersion, parseDebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
@@ -190,31 +190,39 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             , "td {"
             , "    background-color: "++hsv(210,8,100)++";"
             , "}"
+            , ".title th {"
+            , "    font-size: 175%;"
+            , " }"
+            , ".title td {"
+            , "    text-align: center;"
+            , " }"
             , ".arches td.count {"
             , "    width: 6.5em;"
             , "}"
             , ".packages td.count {"
             , "    width: 4em;"
             , "}"
-            , ".title  { font-size: 150%; }"
             , ".count  { text-align: right; }"
             , ".name   { text-align: left; }"
             , ".filler { border: none; background-color: inherit; }"
             ]
     H.body $ do
+        let total = sum $ map snd arches
         H.table ! A.class_ "title" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
                 H.th ! A.class_ "name" $ toMarkup timespan
+            H.tr $ do
+                H.td ! A.class_ "name" $ fromString . printf "%.1f downloads/day" $
+                    (fromIntegral total / realToFrac (end `diffUTCTime` start) * (60*60*24) :: Double)
         H.table ! A.class_ "arches" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
-                H.th ! A.class_ "name" $ "Arch"
+                H.th ! A.class_ "name"  $ "Arch"
                 H.th ! A.class_ "count" $ "Downloads"
                 H.th ! A.class_ "count" $ "Proportion"
-            let total = sum $ map snd arches
             forM_ arches $ \(a, n) -> do
                 H.tr $ do
                     H.td ! A.class_ "name" $ do
