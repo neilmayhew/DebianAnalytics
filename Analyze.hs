@@ -152,15 +152,14 @@ isIndex = (=="Packages") . takeBaseName
 -- List package downloads
 putDebs :: [LogLine] -> IO ()
 putDebs entries = putStr . renderHtml . docTypeHtml $ do
-    let (start, end) = (head &&& last) . map (utctDay . llTime) $ entries
-        llTime :: LogLine -> UTCTime
-        llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
+    let (start, end) = (head &&& last) . map llTime $ entries
+        timespan = show (utctDay start) ++ " – " ++ show (utctDay end)
         debs = extractDebs entries
         arches = sort . countItems . map debArch $ debs
         groups = groupFirsts . map swap . countItems . map debName $ debs
         pkgs = groupFirsts . map (debName . fst &&& id) . countItems $ debs
     H.head $ do
-        H.title $ toMarkup $ "DebianAnalytics: " ++ show start ++ " – " ++ show end
+        H.title $ toMarkup $ "DebianAnalytics: " ++ timespan
         H.meta ! A.httpEquiv "Content-Type" ! A.content "text/html; charset=UTF-8"
         H.style ! A.type_ "text/css" $ mapM_ toMarkup
             [ "body {"
@@ -207,7 +206,7 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
             H.tr $ do
-                H.th ! A.class_ "name" $ toMarkup $ show start ++ " – " ++ show end
+                H.th ! A.class_ "name" $ toMarkup timespan
         H.table ! A.class_ "arches" $ do
             H.tr $ do
                 H.th ! A.class_ "filler" $ "\xa0"
@@ -287,9 +286,13 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 llRequest :: LogLine -> Either String Request_String
 llRequest = AS.parseOnly requestParser . llReq
 
--- Extract the path of a request
+-- Extract the request path of a log line
 llPath :: LogLine -> Either String String
 llPath = return . uriPath . rqURI <=< llRequest
+
+-- Extract the timestamp of a log line
+llTime :: LogLine -> UTCTime
+llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
 
 -- Split a string on a character
 split :: Eq a => a -> [a] -> [[a]]
