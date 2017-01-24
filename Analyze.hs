@@ -69,7 +69,7 @@ dispatch cmd path =
     action =<< parseFile path
   where
     action = fromMaybe err (lookup cmd actions)
-    err    = \_ -> putStrLn $ "Error: " ++ cmd ++ " is not a valid command."
+    err _  = putStrLn $ "Error: " ++ cmd ++ " is not a valid command."
 
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
