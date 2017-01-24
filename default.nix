@@ -1,6 +1,6 @@
 { stdenv, mkDerivation,
     attoparsec, base, blaze-html, bytestring, debian, filepath, hashable,
-    HUnit, HTTP, MissingH, network, network-uri, time, time-locale-compat,
+    HUnit, HTTP, iproute, MissingH, network, network-uri, time, time-locale-compat,
     unordered-containers
 }:
 mkDerivation {
@@ -11,7 +11,7 @@ mkDerivation {
   isExecutable = true;
   executableHaskellDepends = [
     attoparsec  base  blaze-html  bytestring  debian  filepath  hashable
-    HUnit  HTTP  MissingH  network  network-uri  time  time-locale-compat
+    HUnit  HTTP  iproute  MissingH  network  network-uri  time  time-locale-compat
     unordered-containers
   ];
   description = "Analyze apache log files from a Debian repo";

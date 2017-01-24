@@ -5,9 +5,14 @@
 -- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
 
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Parse
-    ( LogLine(..)
+    ( LogEntry(..)
+    , LogLine(..)
+    , mkEntry
     , renderLine
     , lineParser
     , llRequest
@@ -26,23 +31,51 @@ import qualified Data.ByteString.Lazy.Char8 as L
 
 import Network.HTTP
 import Network.URI
+import Data.IP (IP(..))
 import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale, diffUTCTime)
 
 import Data.Functor
 import Data.Maybe (mapMaybe)
 import Control.Monad ((<=<))
 
-data LogLine = LogLine {
-    llIP     :: S.ByteString,
-    llIdent  :: S.ByteString,
-    llUser   :: S.ByteString,
-    llDate   :: S.ByteString,
-    llReq    :: S.ByteString,
-    llStatus :: S.ByteString,
-    llBytes  :: S.ByteString,
-    llRef    :: S.ByteString,
-    llUA     :: S.ByteString
-} deriving (Ord, Show, Eq)
+data LogEntry = LogEntry
+    { leIP     :: IP
+    , leIdent  :: Maybe String
+    , leUser   :: Maybe String
+    , leDate   :: UTCTime
+    , leReq    :: Either String Request_String
+    , leStatus :: Int
+    , leBytes  :: Int
+    , leRef    :: Maybe URI
+    , leUA     :: String
+    } deriving (Show, Eq, Ord)
+
+mkEntry :: LogLine -> LogEntry
+mkEntry l = LogEntry
+    (read . S.unpack $ llIP l)
+    (maybeString $ llIdent l)
+    (maybeString $ llUser l)
+    (llTime l)
+    (llRequest l)
+    (read . S.unpack $ llStatus l)
+    (read . S.unpack $ llBytes l)
+    (parseURI . S.unpack $ llRef l)
+    (S.unpack $ llUA l)
+  where
+    maybeString "-" = Nothing
+    maybeString x = Just $ S.unpack x
+
+data LogLine = LogLine
+    { llIP     :: S.ByteString
+    , llIdent  :: S.ByteString
+    , llUser   :: S.ByteString
+    , llDate   :: S.ByteString
+    , llReq    :: S.ByteString
+    , llStatus :: S.ByteString
+    , llBytes  :: S.ByteString
+    , llRef    :: S.ByteString
+    , llUA     :: S.ByteString
+    } deriving (Show, Eq, Ord)
 
 -- Extract the request from a log line
 llRequest :: LogLine -> Either String Request_String
@@ -111,6 +144,12 @@ lineParser = do
     return $ LogLine ip identity user date req status bytes path ua
 
 deriving instance Read RequestMethod
+deriving instance Ord  RequestMethod
+deriving instance Ord  HeaderName
+deriving instance Ord  Header
+deriving instance Eq   Header
+deriving instance Eq   Request_String
+deriving instance Ord  Request_String
 
 requestParser :: Parser (HTTPRequest String)
 requestParser = do
