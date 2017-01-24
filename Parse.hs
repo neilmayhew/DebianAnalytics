@@ -6,15 +6,31 @@
 
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Parse (LogLine(..), renderLine, lineParser, requestParser) where
+module Parse
+    ( LogLine(..)
+    , renderLine
+    , lineParser
+    , llRequest
+    , llPath
+    , llTime
+    , parseFile
+    , parseLines
+    , renderFile
+    ) where
 
 import Data.Attoparsec.ByteString.Char8
+import qualified Data.Attoparsec.ByteString as AS
+import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.Lazy.Char8 as L
 
 import Network.HTTP
 import Network.URI
+import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale, diffUTCTime)
 
 import Data.Functor
+import Data.Maybe (mapMaybe)
+import Control.Monad ((<=<))
 
 data LogLine = LogLine {
     llIP     :: S.ByteString,
@@ -27,6 +43,18 @@ data LogLine = LogLine {
     llRef    :: S.ByteString,
     llUA     :: S.ByteString
 } deriving (Ord, Show, Eq)
+
+-- Extract the request from a log line
+llRequest :: LogLine -> Either String Request_String
+llRequest = parseOnly requestParser . llReq
+
+-- Extract the request path of a log line
+llPath :: LogLine -> Either String String
+llPath = return . uriPath . rqURI <=< llRequest
+
+-- Extract the timestamp of a log line
+llTime :: LogLine -> UTCTime
+llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
 
 renderLine :: LogLine -> S.ByteString
 renderLine (LogLine ip id u d req s n ref ua) =
@@ -96,3 +124,14 @@ requestParser = do
     mkMethod s = case reads s of
         (method,_):_ -> method
         _            -> Custom s
+
+parseFile :: FilePath -> IO [LogLine]
+parseFile path = parseLines . L.lines <$> readPath
+  where readPath = if path == "-" then L.getContents else L.readFile path
+
+parseLines :: [L.ByteString] -> [LogLine]
+parseLines = mapMaybe (AL.maybeResult . AL.parse lineParser)
+
+renderFile :: FilePath -> [LogLine] -> IO ()
+renderFile path = writePath . S.unlines . map renderLine
+  where writePath = if path == "-" then S.putStr else S.writeFile path

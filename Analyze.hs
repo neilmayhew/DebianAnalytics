@@ -16,10 +16,7 @@ import Text.Blaze.Html.Renderer.Pretty
 
 import qualified Text.Blaze.Html4.Strict as H
 import qualified Text.Blaze.Html4.Strict.Attributes as A
-import qualified Data.Attoparsec.Lazy as AL
-import qualified Data.Attoparsec.ByteString as AS
 import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.HashMap.Strict as M
 
 import Data.Either
@@ -47,13 +44,6 @@ parseDebianVersion' = parseDebianVersion
 #else
 import Debian.Version (parseDebianVersion')
 #endif
-
-parseFile :: FilePath -> IO [LogLine]
-parseFile path = parseLines . L.lines <$> readPath
-  where readPath = if path == "-" then L.getContents else L.readFile path
-
-parseLines :: [L.ByteString] -> [LogLine]
-parseLines = mapMaybe (AL.maybeResult . AL.parse lineParser)
 
 main :: IO ()
 main = do
@@ -289,18 +279,6 @@ putArchCounts arches = do
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
-
--- Extract the request from a log line
-llRequest :: LogLine -> Either String Request_String
-llRequest = AS.parseOnly requestParser . llReq
-
--- Extract the request path of a log line
-llPath :: LogLine -> Either String String
-llPath = return . uriPath . rqURI <=< llRequest
-
--- Extract the timestamp of a log line
-llTime :: LogLine -> UTCTime
-llTime = parseTimeOrError False defaultTimeLocale "%d/%b/%Y:%T %z" . S.unpack . llDate
 
 -- Split a string on a character
 split :: Eq a => a -> [a] -> [[a]]
