@@ -32,8 +32,8 @@ main = do
 leSuccessful :: LogEntry -> Bool
 leSuccessful = (<400) . leStatus
 
-leStem :: LogEntry -> Maybe String
-leStem = either (const Nothing) (listToMaybe . pathSegments . rqURI) . leReq
+leStem :: LogEntry -> Maybe [String]
+leStem = either (const Nothing) (Just . take 2 . pathSegments . rqURI) . leReq
 
 multiMapFromList :: Ord a => [(a, b)] -> M.Map a [b]
 multiMapFromList = M.fromListWith (\[x] l -> x:l) . map (second (:[]))
