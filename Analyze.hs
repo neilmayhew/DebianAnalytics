@@ -32,8 +32,7 @@ import Data.Tuple
 import Debian.Version (DebianVersion, parseDebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
 import Text.Printf
-import Network.HTTP
-import Network.URI
+import Network.URI (unEscapeString)
 import Control.Arrow (first, second, (&&&), (***))
 import Control.Monad
 import System.Environment
