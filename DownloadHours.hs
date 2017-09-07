@@ -2,19 +2,19 @@
 --
 -- Neil Mayhew - 2017-09-01
 
+{-# OPTIONS_GHC -Wno-type-defaults #-}
+
 module Main where
 
 import Parse
 
-import Control.Arrow ((&&&), (***), second)
+import Control.Arrow ((&&&))
 import Data.List (group, sort)
-import Data.Time (UTCTime(..), DiffTime(..), secondsToDiffTime, getCurrentTime)
+import Data.Time (UTCTime(..), secondsToDiffTime)
 import Network.HTTP (rqURI)
 import Network.URI (pathSegments)
 import System.Environment (getArgs, lookupEnv)
 import Text.Printf (printf)
-
-import qualified Data.Map as M
 
 main :: IO ()
 main = do

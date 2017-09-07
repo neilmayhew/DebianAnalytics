@@ -9,6 +9,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-# OPTIONS_GHC -Wno-unused-do-bind -Wno-name-shadowing -Wno-orphans #-}
+
 module Parse
     ( LogEntry(..)
     , LogLine(..)
@@ -24,7 +26,6 @@ module Parse
     ) where
 
 import Data.Attoparsec.ByteString.Char8
-import qualified Data.Attoparsec.ByteString as AS
 import qualified Data.Attoparsec.Lazy as AL
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -32,9 +33,9 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import Network.HTTP
 import Network.URI
 import Data.IP (IP(..))
-import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale, diffUTCTime)
+import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale)
 
-import Data.Functor
+import Data.Functor ((<$>))
 import Data.Maybe (mapMaybe)
 import Control.Monad ((<=<))
 
