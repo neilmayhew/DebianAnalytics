@@ -123,3 +123,4 @@ executable DownloadHours
         network < 2.5
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
+    ghc-options: -Wall
