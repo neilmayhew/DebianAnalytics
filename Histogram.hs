@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-type-defaults #-}
-
 module Histogram where
 
 import Control.Arrow ((&&&))
@@ -18,8 +16,8 @@ histogram' cols prs = map format $ zip3 items freqs bars
     bars = map (bar . normalize) freqs
     bar = flip replicate '*'
     normalize = round . (*scale) . realToFrac
-    scale = realToFrac (cols - margin) / realToFrac (maximum freqs)
-    margin = length $ format (0, 0, "")
+    scale = realToFrac (cols - margin) / realToFrac (maximum freqs) :: Double
+    margin = length $ format (0::Int, 0::Int, "")
 
 width :: Show a => [a] -> Int
 width = maximum . map (length . show)
