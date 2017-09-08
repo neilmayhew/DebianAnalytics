@@ -14,10 +14,17 @@ category: Utility
 author: Neil Mayhew
 
 flag network-uri
-   description: Get Network.URI from the network-uri package
-   default: True
+    description:
+        Get Network.URI from the network-uri package
 
 executable Analyze
+    if flag(network-uri)
+        build-depends:
+            network-uri >=2.5 && <2.7,
+            network >=2.5 && <2.7
+    else
+        build-depends:
+            network <2.5
     main-is: Analyze.hs
     build-depends:
         base >=4.6 && <4.10,
@@ -32,18 +39,19 @@ executable Analyze
         blaze-html >=0.6 && <0.9,
         HUnit >=1.2 && <1.6,
         time >=1.4 && <1.7,
-        time-locale-compat
-    if flag(network-uri)
-      build-depends:
-        network-uri >=2.5 && <2.7, network >=2.5 && <2.7
-    else
-      build-depends:
-        network < 2.5
+        time-locale-compat -any
     default-language: Haskell2010
     other-extensions: OverloadedStrings StandaloneDeriving
     ghc-options: -Wall
 
 executable Filter
+    if flag(network-uri)
+        build-depends:
+            network-uri >=2.5 && <2.7,
+            network >=2.5 && <2.7
+    else
+        build-depends:
+            network <2.5
     main-is: Filter.hs
     build-depends:
         base >=4.6 && <4.10,
@@ -53,18 +61,19 @@ executable Filter
         iproute >=1.5 && <1.8,
         MissingH <1.6,
         time >=1.4 && <1.7,
-        time-locale-compat
-    if flag(network-uri)
-      build-depends:
-        network-uri >=2.5 && <2.7, network >=2.5 && <2.7
-    else
-      build-depends:
-        network < 2.5
+        time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
     ghc-options: -Wall
 
 executable Status
+    if flag(network-uri)
+        build-depends:
+            network-uri >=2.5 && <2.7,
+            network >=2.5 && <2.7
+    else
+        build-depends:
+            network <2.5
     main-is: Status.hs
     build-depends:
         base >=4.6 && <4.10,
@@ -74,57 +83,53 @@ executable Status
         iproute >=1.5 && <1.8,
         MissingH <1.6,
         time >=1.4 && <1.7,
-        time-locale-compat
-    if flag(network-uri)
-      build-depends:
-        network-uri >=2.5 && <2.7, network >=2.5 && <2.7
-    else
-      build-depends:
-        network < 2.5
+        time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
     ghc-options: -Wall
 
 executable Stem
+    if flag(network-uri)
+        build-depends:
+            network-uri >=2.5 && <2.7,
+            network >=2.5 && <2.7
+    else
+        build-depends:
+            network <2.5
     main-is: Stem.hs
     build-depends:
         base >=4.6 && <4.10,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
-        containers >= 0.1 && <0.6,
+        containers >=0.1 && <0.6,
         HTTP >=4000.2 && <4000.4,
         iproute >=1.5 && <1.8,
         MissingH <1.6,
         time >=1.4 && <1.7,
-        time-locale-compat
-    if flag(network-uri)
-      build-depends:
-        network-uri >=2.5 && <2.7, network >=2.5 && <2.7
-    else
-      build-depends:
-        network < 2.5
+        time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
     ghc-options: -Wall
 
 executable DownloadHours
+    if flag(network-uri)
+        build-depends:
+            network-uri >=2.5 && <2.7,
+            network >=2.5 && <2.7
+    else
+        build-depends:
+            network <2.5
     main-is: DownloadHours.hs
     build-depends:
         base >=4.6 && <4.10,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
-        containers >= 0.1 && <0.6,
+        containers >=0.1 && <0.6,
         HTTP >=4000.2 && <4000.4,
         iproute >=1.5 && <1.8,
         MissingH <1.6,
         time >=1.4 && <1.7,
-        time-locale-compat
-    if flag(network-uri)
-      build-depends:
-        network-uri >=2.5 && <2.7, network >=2.5 && <2.7
-    else
-      build-depends:
-        network < 2.5
+        time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
     ghc-options: -Wall
