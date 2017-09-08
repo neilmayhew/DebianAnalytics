@@ -9,7 +9,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-{-# OPTIONS_GHC -Wno-unused-do-bind -Wno-name-shadowing -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-name-shadowing -Wno-orphans #-}
 
 module Parse
     ( LogEntry(..)
@@ -37,7 +37,7 @@ import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale)
 
 import Data.Functor ((<$>))
 import Data.Maybe (mapMaybe)
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), void)
 
 data LogEntry = LogEntry
     { leIP     :: IP
@@ -101,45 +101,51 @@ quote  = satisfy (== '\"')
 lbrack = satisfy (== '[')
 rbrack = satisfy (== ']')
 
+quote_, lbrack_, rbrack_, space_ :: Parser ()
+quote_  = void quote
+lbrack_ = void lbrack
+rbrack_ = void rbrack
+space_  = void space
+
 plainValue :: Parser S.ByteString
 plainValue = takeTill (== ' ')
 
 quotedValue :: Parser S.ByteString
 quotedValue = do
-    quote
+    quote_
     res <- takeTill (== '\"')
-    quote
+    quote_
     return res
 
 bracketedValue :: Parser S.ByteString
 bracketedValue = do
-    lbrack
+    lbrack_
     res <- takeTill (== ']')
-    rbrack
+    rbrack_
     return res
 
 combined :: Parser (S.ByteString,S.ByteString)
 combined = do
-    space
+    space_
     path <- quotedValue
-    space
+    space_
     ua <- quotedValue
     return (path,ua)
 
 lineParser :: Parser LogLine
 lineParser = do
     ip <- plainValue
-    space
+    space_
     identity <- plainValue
-    space
+    space_
     user <- plainValue
-    space
+    space_
     date <- bracketedValue
-    space
+    space_
     req <- quotedValue
-    space
+    space_
     status <- plainValue
-    space
+    space_
     bytes <- plainValue
     (path,ua) <- option (S.empty,S.empty) combined
     return $ LogLine ip identity user date req status bytes path ua
@@ -155,7 +161,7 @@ deriving instance Ord  Request_String
 requestParser :: Parser (HTTPRequest String)
 requestParser = do
     method <- mkMethod . S.unpack <$> plainValue
-    space
+    space_
     uri <- S.unpack <$> plainValue
     case parseURIReference uri of
         Nothing -> fail ("Invalid URI: " ++ uri)
