@@ -9,7 +9,6 @@ import Parse
 import Control.Arrow ((&&&), (***), second)
 import Data.Function (on)
 import Data.List (group, groupBy, sort, sortBy)
-import Data.Maybe (listToMaybe)
 import Data.Ord (comparing)
 import Network.HTTP (rqURI)
 import Network.URI (pathSegments)

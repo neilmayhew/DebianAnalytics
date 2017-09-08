@@ -16,19 +16,19 @@ hsl2rgb (h, s, l) =
         rgbQuant (p, q, h-120))
   where
     rgbQuant (p, q, h') =
-        let h = if      h' <    0 then h' + 360
-                else if h' >= 360 then h' - 360
-                else                   h'
-        in      if      h  <   60 then p + (q-p)*h/60
-                else if h  <  180 then q
-                else if h  <  240 then p + (q-p)*(240-h)/60
-                else                   p
+        let h'' = if      h'  <    0 then h' + 360
+                  else if h'  >= 360 then h' - 360
+                  else                    h'
+        in        if      h'' <   60 then p + (q-p)*h''/60
+                  else if h'' <  180 then q
+                  else if h'' <  240 then p + (q-p)*(240-h'')/60
+                  else                    p
 
 -- h: [0..360) s: [0..1] v: [0..1]
 -- r,g,b: [0..1]
 hsv2rgb :: (Double, Double, Double) -> (Double, Double, Double)
 hsv2rgb (h, s, v) =
-    let (i, f) = properFraction (h / 60)
+    let (i, f) = properFraction (h / 60) :: (Int, Double)
         p = v * (1 - s);
         q = v * (1 - s * f);
         t = v * (1 - s * (1 - f));
@@ -53,7 +53,8 @@ css :: (Double, Double, Double) -> String
 css (r, g, b) = printf "#%02X%02X%02X" (r'::Int) (g'::Int) (b'::Int)
   where (r', g', b') = (round $ 255 * r, round $ 255 * g, round $ 255 * b)
 
-tests = TestList
+_tests :: Test
+_tests = TestList
     [ "#566973" ~=? hsv(200,0.25,0.45)
     , "#FFFF80" ~=? hsv( 60,0.50,1.00)
     , "#EBF8FF" ~=? hsv(200,0.08,1.00)

@@ -5,6 +5,7 @@
 -- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
 
 {-# LANGUAGE OverloadedStrings, DeriveGeneric, CPP #-}
+{-# OPTIONS_GHC -Wno-name-shadowing -Wno-orphans #-}
 
 module Main where
 
@@ -20,20 +21,19 @@ import qualified Data.ByteString.Char8 as S
 import qualified Data.HashMap.Strict as M
 
 import Data.Either
-import Data.Functor
+import Data.Functor ((<$>))
 import Data.Function
 import Data.Hashable
 import Data.List
 import Data.Maybe
-import Data.Ord (comparing)
 import Data.String (fromString)
-import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale, diffUTCTime)
+import Data.Time (UTCTime(..), diffUTCTime)
 import Data.Tuple
-import Debian.Version (DebianVersion, parseDebianVersion, prettyDebianVersion)
+import Debian.Version (DebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
 import Text.Printf
 import Network.URI (unEscapeString)
-import Control.Arrow (first, second, (&&&), (***))
+import Control.Arrow (first, second, (&&&))
 import Control.Monad
 import System.Environment
 import System.FilePath
@@ -133,9 +133,13 @@ archUsers = groupFirsts . nub . arches . indices
     ipAndPath l = (,) (S.unpack $ llIP l) <$> llPath l
 
 -- Log line filtering predicates
+isDownload :: LogLine -> Bool
 isDownload = (=='2') . S.head . llStatus
+notSvn :: [Char] -> Bool
 notSvn = not . ("/svn/" `isPrefixOf`)
+isDeb :: FilePath -> Bool
 isDeb = (==".deb") . takeExtension
+isIndex :: FilePath -> Bool
 isIndex = (=="Packages") . takeBaseName
 
 -- List package downloads
@@ -281,7 +285,7 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Split a string on a character
 split :: Eq a => a -> [a] -> [[a]]
-split c [] = []
+split _ [] = []
 split c s  = front : split c rest
   where (front, rest') = span (/= c) s
         rest = drop 1 rest'
