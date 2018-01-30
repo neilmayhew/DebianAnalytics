@@ -64,8 +64,8 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions =
-    [ ("ips",    topList . countItems . map (BS.copy . llIP))
-    , ("urls",   topList . countItems . filter notSvn . rights . map llPath)
+    [ ("ips",    topList 20 . countItems . map (BS.copy . llIP))
+    , ("urls",   topList 20 . countItems . filter notSvn . rights . map llPath)
     , ("debs",   putDebs)
     , ("users",  putArchUsers  . archUsers)
     , ("arches", putArchCounts . archCounts)
@@ -73,8 +73,8 @@ actions =
     , ("successful", putSuccessfulIPs . successfulIPs)
     ]
 
-topList :: Show a => [(a, Int)] -> IO ()
-topList = putList . take 20 . sortList
+topList :: Show a => Int -> [(a, Int)] -> IO ()
+topList n = putList . take n . sortList
 
 -- Helper that turns a map into a top list, based on the second value.
 putList :: Show a => [(a, Int)] -> IO ()
