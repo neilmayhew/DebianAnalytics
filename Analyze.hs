@@ -64,7 +64,7 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions =
-    [ ("ips",    topList 20 . countItems . map (BS.copy . llIP))
+    [ ("ips",    topList 20 . countItems . map (BS.unpack . llIP))
     , ("urls",   topList 20 . countItems . filter notSvn . rights . map llPath)
     , ("debs",   putDebs)
     , ("users",  putArchUsers  . archUsers)
@@ -73,19 +73,16 @@ actions =
     , ("successful", putSuccessfulIPs . successfulIPs)
     ]
 
-topList :: Show a => Int -> [(a, Int)] -> IO ()
+topList :: Int -> [(String, Int)] -> IO ()
 topList n = putList . take n . sortList
 
 -- Helper that turns a map into a top list, based on the second value.
-putList :: Show a => [(a, Int)] -> IO ()
-putList = mapM_ putStrLn . zipWith pretty [1..]
+putList :: [(String, Int)] -> IO ()
+putList = mapM_ putStrLn . tabulate [AlignRight, AlignLeft] . zipWith mkRow [1::Int ..]
+  where mkRow i (s, n) = [show i, s, show n]
 
 sortList :: [(a, Int)] -> [(a, Int)]
 sortList = sortBy (flip compare `on` snd)
-
--- Helper for printing the top list.
-pretty :: Show a => Int -> (a, Int) -> String
-pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
 -- Helper for tabulating output
 
