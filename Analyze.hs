@@ -87,6 +87,14 @@ sortList = sortBy (flip compare `on` snd)
 pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
+-- Helper for tabulating output
+tabulate :: [[String]] -> [String]
+tabulate rows = map formatRow rows
+  where
+    formatRow = intercalate " " . map pad . zip widths
+    pad (n, s) = take n $ s ++ repeat ' '
+    widths = map maximum . transpose . map (map length) $ rows
+
 groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, [b])]
 groupFirsts = map combine . groupBy ((==) `on` fst) . sort
   where combine = fst . head &&& map snd
@@ -288,7 +296,8 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Show the IPs of the successful requests
 putSuccessfulIPs :: [IP] -> IO ()
-putSuccessfulIPs = mapM_ print . countItems
+putSuccessfulIPs = mapM_ putStrLn . tabulate . map toRow . countItems
+  where toRow (a, c) = [show a, show c]
 
 successfulIPs :: [LogLine] -> [IP]
 successfulIPs = map leIP . filter leSuccessful . map mkEntry
