@@ -307,7 +307,7 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Show the IPs of the successful requests
 putSuccessfulIPs :: [IP] -> IO ()
-putSuccessfulIPs = mapM_ putStrLn . tabulate [AlignLeft] . map toRow . countItems
+putSuccessfulIPs = mapM_ putStrLn . tabulate [AlignLeft] . map toRow . sort . countItems
   where toRow (a, c) = [show a, show c]
 
 successfulIPs :: [LogLine] -> [IP]
