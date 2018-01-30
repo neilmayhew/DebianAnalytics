@@ -17,7 +17,7 @@ import Text.Blaze.Html.Renderer.Pretty
 
 import qualified Text.Blaze.Html4.Strict as H
 import qualified Text.Blaze.Html4.Strict.Attributes as A
-import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as M
 
 import Data.Either
@@ -63,7 +63,7 @@ dispatch cmd path =
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
 actions =
-    [ ("ips",    topList . countItems . map (S.copy . llIP))
+    [ ("ips",    topList . countItems . map (BS.copy . llIP))
     , ("urls",   topList . countItems . filter notSvn . rights . map llPath)
     , ("debs",   putDebs)
     , ("users",  putArchUsers  . archUsers)
@@ -131,11 +131,11 @@ archUsers = groupFirsts . nub . arches . indices
     arch = fromMaybe "?" . stripPrefix "binary-" . takeFileName . takeDirectory
     indices :: [LogLine] -> [(Addr, FilePath)]
     indices = filter (isIndex . snd) . rights . map ipAndPath . filter isDownload
-    ipAndPath l = (,) (S.unpack $ llIP l) <$> llPath l
+    ipAndPath l = (,) (BS.unpack $ llIP l) <$> llPath l
 
 -- Log line filtering predicates
 isDownload :: LogLine -> Bool
-isDownload = (=='2') . S.head . llStatus
+isDownload = (=='2') . BS.head . llStatus
 notSvn :: [Char] -> Bool
 notSvn = not . ("/svn/" `isPrefixOf`)
 isDeb :: FilePath -> Bool
