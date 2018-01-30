@@ -62,13 +62,14 @@ dispatch cmd path =
 
 -- Associative list of commands and actions.
 actions :: [(Command, Action)]
-actions = [
-    ("ips",    topList . countItems . map (S.copy . llIP)),
-    ("urls",   topList . countItems . filter notSvn . rights . map llPath),
-    ("debs",   putDebs),
-    ("users",  putArchUsers  . archUsers),
-    ("arches", putArchCounts . archCounts),
-    ("bad",    badReqs)]
+actions =
+    [ ("ips",    topList . countItems . map (S.copy . llIP))
+    , ("urls",   topList . countItems . filter notSvn . rights . map llPath)
+    , ("debs",   putDebs)
+    , ("users",  putArchUsers  . archUsers)
+    , ("arches", putArchCounts . archCounts)
+    , ("bad",    badReqs)
+    ]
 
 topList :: Show a => [(a, Int)] -> IO ()
 topList = putList . take 20 . sortList
