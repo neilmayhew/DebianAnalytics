@@ -24,6 +24,7 @@ import Data.Either
 import Data.Functor ((<$>))
 import Data.Function
 import Data.Hashable
+import Data.IP (IP(..), toHostAddress, toHostAddress6)
 import Data.List
 import Data.Maybe
 import Data.String (fromString)
@@ -69,6 +70,7 @@ actions =
     , ("users",  putArchUsers  . archUsers)
     , ("arches", putArchCounts . archCounts)
     , ("bad",    badReqs)
+    , ("successful", putSuccessfulIPs . successfulIPs)
     ]
 
 topList :: Show a => [(a, Int)] -> IO ()
@@ -283,6 +285,20 @@ putArchCounts arches = do
 -- Show just the bad requests
 badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
+
+-- Show the IPs of the successful requests
+putSuccessfulIPs :: [IP] -> IO ()
+putSuccessfulIPs = mapM_ print . countItems
+
+successfulIPs :: [LogLine] -> [IP]
+successfulIPs = map leIP . filter leSuccessful . map mkEntry
+
+leSuccessful :: LogEntry -> Bool
+leSuccessful = (<400) . leStatus
+
+instance Hashable IP where
+    hashWithSalt n (IPv4 a) = hashWithSalt n $ toHostAddress  a
+    hashWithSalt n (IPv6 a) = hashWithSalt n $ toHostAddress6 a
 
 -- Split a string on a character
 split :: Eq a => a -> [a] -> [[a]]
