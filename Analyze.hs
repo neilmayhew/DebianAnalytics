@@ -303,12 +303,13 @@ badReqs :: [LogLine] -> IO ()
 badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Show the IPs of the successful requests
-putSuccessfulIPs :: [IP] -> IO ()
-putSuccessfulIPs = mapM_ putStrLn . tabulate [AlignLeft] . map toRow . sort . countItems
+putSuccessfulIPs :: [BS.ByteString] -> IO ()
+putSuccessfulIPs = mapM_ putStrLn . tabulate [AlignLeft] . map toRow . sort . map (first toIP) . countItems
   where toRow (a, c) = [show a, show c]
+        toIP = read . BS.unpack :: BS.ByteString -> IP
 
-successfulIPs :: [LogLine] -> [IP]
-successfulIPs = map leIP . filter leSuccessful . map mkEntry
+successfulIPs :: [LogLine] -> [BS.ByteString]
+successfulIPs = map llIP . filter (leSuccessful . mkEntry)
 
 leSuccessful :: LogEntry -> Bool
 leSuccessful = (<400) . leStatus
