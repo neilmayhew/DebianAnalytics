@@ -95,7 +95,7 @@ countItems = M.toList . foldl' count M.empty
   where count acc x = M.insertWith (+) x 1 acc
 
 type Arch = String
-type IP = String
+type Addr = String
 
 data Deb = Deb
     { debName    :: String
@@ -122,14 +122,14 @@ archCounts :: [LogLine] -> [(Arch, Int)]
 archCounts = map (second length) . archUsers
 
 -- Unique users of architectures
-archUsers :: [LogLine] -> [(String, [IP])]
+archUsers :: [LogLine] -> [(String, [Addr])]
 archUsers = groupFirsts . nub . arches . indices
   where
-    arches :: [(IP, FilePath)] -> [(Arch, IP)]
+    arches :: [(Addr, FilePath)] -> [(Arch, Addr)]
     arches = map (swap . second arch)
     arch :: FilePath -> Arch
     arch = fromMaybe "?" . stripPrefix "binary-" . takeFileName . takeDirectory
-    indices :: [LogLine] -> [(IP, FilePath)]
+    indices :: [LogLine] -> [(Addr, FilePath)]
     indices = filter (isIndex . snd) . rights . map ipAndPath . filter isDownload
     ipAndPath l = (,) (S.unpack $ llIP l) <$> llPath l
 
@@ -267,7 +267,7 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
                 H.th ! A.class_ "filler" $ "\xa0"
 
 -- List architecture users
-putArchUsers :: [(String, [IP])] -> IO ()
+putArchUsers :: [(String, [Addr])] -> IO ()
 putArchUsers arches = do
     let width = maximum . map (length . fst) $ arches
     forM_ arches $ \(a, ips) ->
