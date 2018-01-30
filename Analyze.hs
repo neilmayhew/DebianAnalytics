@@ -88,11 +88,22 @@ pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
 -- Helper for tabulating output
-tabulate :: [[String]] -> [String]
-tabulate rows = map formatRow rows
+
+data Alignment = AlignLeft | AlignRight
+
+align :: (Alignment, Int, String) -> String
+align (a, n, s) = case a of
+    AlignLeft  -> s ++ padding
+    AlignRight -> padding ++ s
   where
-    formatRow = intercalate " " . map pad . zip widths
-    pad (n, s) = take n $ s ++ repeat ' '
+    padding = replicate m ' '
+    m = max 0 (n - length s)
+
+tabulate :: [Alignment] -> [[String]] -> [String]
+tabulate alignments rows = map formatRow rows
+  where
+    alignments' = alignments ++ repeat AlignRight
+    formatRow = intercalate " " . map align . zip3 alignments' widths
     widths = map maximum . transpose . map (map length) $ rows
 
 groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, [b])]
@@ -296,7 +307,7 @@ badReqs = mapM_ putStrLn . lefts . map llRequest
 
 -- Show the IPs of the successful requests
 putSuccessfulIPs :: [IP] -> IO ()
-putSuccessfulIPs = mapM_ putStrLn . tabulate . map toRow . countItems
+putSuccessfulIPs = mapM_ putStrLn . tabulate [AlignLeft] . map toRow . countItems
   where toRow (a, c) = [show a, show c]
 
 successfulIPs :: [LogLine] -> [IP]
