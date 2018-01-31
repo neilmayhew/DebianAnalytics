@@ -26,8 +26,9 @@ executable Analyze
         build-depends:
             network <2.5
     main-is: Analyze.hs
+    other-modules: Parse Color
     build-depends:
-        base >=4.6 && <4.10,
+        base >=4.6 && <4.11,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
         debian >=3.61 && <3.94,
@@ -53,8 +54,9 @@ executable Filter
         build-depends:
             network <2.5
     main-is: Filter.hs
+    other-modules: Parse
     build-depends:
-        base >=4.6 && <4.10,
+        base >=4.6 && <4.11,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
         HTTP >=4000.2 && <4000.4,
@@ -75,8 +77,9 @@ executable Status
         build-depends:
             network <2.5
     main-is: Status.hs
+    other-modules: Parse
     build-depends:
-        base >=4.6 && <4.10,
+        base >=4.6 && <4.11,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
         HTTP >=4000.2 && <4000.4,
@@ -97,8 +100,9 @@ executable Stem
         build-depends:
             network <2.5
     main-is: Stem.hs
+    other-modules: Parse
     build-depends:
-        base >=4.6 && <4.10,
+        base >=4.6 && <4.11,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
         containers >=0.1 && <0.6,
@@ -120,8 +124,9 @@ executable DownloadHours
         build-depends:
             network <2.5
     main-is: DownloadHours.hs
+    other-modules: Parse Histogram
     build-depends:
-        base >=4.6 && <4.10,
+        base >=4.6 && <4.11,
         attoparsec >=0.10 && <0.14,
         bytestring >=0.10 && <0.11,
         containers >=0.1 && <0.6,
