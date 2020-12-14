@@ -133,6 +133,7 @@ executable DownloadHours
         HTTP >=4000.2 && <4000.4,
         iproute >=1.5 && <1.8,
         MissingH <1.6,
+        terminal-size,
         time >=1.4 && <1.9,
         time-locale-compat -any
     default-language: Haskell2010

@@ -10,12 +10,14 @@ import Histogram
 import Data.Time (UTCTime(..), secondsToDiffTime)
 import Network.HTTP (rqURI)
 import Network.URI (pathSegments)
-import System.Environment (getArgs, lookupEnv)
+import System.Environment (getArgs)
+
+import qualified System.Console.Terminal.Size as TS
 
 main :: IO ()
 main = do
     paths <- getArgs
-    cols <- maybe 80 read <$> lookupEnv "COLUMNS"
+    cols <- maybe 80 TS.width <$> TS.size
     entries <- map mkEntry . concat <$> mapM parseFile paths
     putStr . unlines . histogram cols . downloadHours $ entries
 
