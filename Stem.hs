@@ -35,7 +35,7 @@ leStem :: LogEntry -> Maybe [String]
 leStem = either (const Nothing) (Just . take 2 . pathSegments . rqURI) . leReq
 
 multiMapFromList :: Ord a => [(a, b)] -> M.Map a [b]
-multiMapFromList = M.fromListWith (\[x] l -> x:l) . map (second (:[]))
+multiMapFromList = M.fromListWith (++) . map (second pure)
 
 groupAssociations :: (Eq a, Ord a) => [(a, b)] -> [(a, [b])]
 groupAssociations = map ((fst . head) &&& map snd)
