@@ -5,7 +5,8 @@
 -- Adapted from: https://variadic.me/posts/2012-02-25-adventures-in-parsec-attoparsec.html
 
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -32,12 +33,15 @@ import qualified Data.ByteString.Lazy.Char8 as L
 
 import Network.HTTP
 import Network.URI
-import Data.IP (IP(..))
+import Data.IP
 import Data.Time (UTCTime(..), parseTimeOrError, defaultTimeLocale)
 
 import Data.Functor ((<$>))
 import Data.Maybe (mapMaybe)
 import Control.Monad ((<=<), void)
+
+import Control.DeepSeq -- (NFData(..))
+import GHC.Generics (Generic)
 
 data LogEntry = LogEntry
     { leIP     :: IP
@@ -49,7 +53,7 @@ data LogEntry = LogEntry
     , leBytes  :: Int
     , leRef    :: Maybe URI
     , leUA     :: String
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq, Ord, Generic, NFData)
 
 mkEntry :: LogLine -> LogEntry
 mkEntry l = LogEntry
@@ -76,7 +80,18 @@ data LogLine = LogLine
     , llBytes  :: S.ByteString
     , llRef    :: S.ByteString
     , llUA     :: S.ByteString
-    } deriving (Show, Eq, Ord)
+    } deriving (Show, Eq, Ord, Generic, NFData)
+
+instance NFData IPv4
+instance NFData IPv6
+instance NFData IP
+
+deriving instance Generic RequestMethod
+deriving instance Generic Header
+deriving instance Generic a => Generic (Request a)
+instance NFData RequestMethod where rnf x = seq x ()
+instance NFData Header where rnf x = seq x ()
+instance Generic a => NFData (Request a) where rnf x = seq x ()
 
 -- Extract the request from a log line
 llRequest :: LogLine -> Either String Request_String
