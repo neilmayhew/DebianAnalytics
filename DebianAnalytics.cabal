@@ -28,9 +28,9 @@ executable Analyze
     main-is: Analyze.hs
     other-modules: Parse Color
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         debian >=3.61 && <4.1,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
@@ -57,13 +57,13 @@ executable Filter
     main-is: Filter.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        MissingH <1.6,
+        MissingH <1.7,
         time >=1.4 && <1.13,
         time-locale-compat -any
     default-language: Haskell2010
@@ -81,13 +81,13 @@ executable Status
     main-is: Status.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        MissingH <1.6,
+        MissingH <1.7,
         time >=1.4 && <1.13,
         time-locale-compat -any
     default-language: Haskell2010
@@ -105,14 +105,14 @@ executable Stem
     main-is: Stem.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        MissingH <1.6,
+        MissingH <1.7,
         time >=1.4 && <1.13,
         time-locale-compat -any
     default-language: Haskell2010
@@ -130,14 +130,14 @@ executable DownloadHours
     main-is: DownloadHours.hs
     other-modules: Parse Histogram
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        MissingH <1.6,
+        MissingH <1.7,
         terminal-size,
         time >=1.4 && <1.13,
         time-locale-compat -any
@@ -156,15 +156,15 @@ executable Benchmark
     main-is: Benchmark.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.19,
+        base >=4.6 && <4.20,
         attoparsec >=0.10 && <0.15,
-        bytestring >=0.10 && <0.12,
+        bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,
         criterion -any,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        MissingH <1.6,
+        MissingH <1.7,
         time >=1.4 && <1.13,
         time-locale-compat -any
     default-language: Haskell2010
