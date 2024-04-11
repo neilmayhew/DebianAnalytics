@@ -28,7 +28,7 @@ executable Analyze
     main-is: Analyze.hs
     other-modules: Parse Color
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         debian >=3.61 && <4.1,
@@ -57,7 +57,7 @@ executable Filter
     main-is: Filter.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         deepseq -any,
@@ -81,7 +81,7 @@ executable Status
     main-is: Status.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         deepseq -any,
@@ -105,7 +105,7 @@ executable Stem
     main-is: Stem.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,
@@ -130,7 +130,7 @@ executable DownloadHours
     main-is: DownloadHours.hs
     other-modules: Parse Histogram
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,
@@ -156,7 +156,7 @@ executable Benchmark
     main-is: Benchmark.hs
     other-modules: Parse
     build-depends:
-        base >=4.6 && <4.20,
+        base >=4.9 && <4.20,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         containers >=0.1 && <0.7,

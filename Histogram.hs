@@ -1,8 +1,10 @@
 module Histogram where
 
 import Control.Arrow ((&&&))
-import Data.List (group, sort)
+import Data.List (sort)
 import Text.Printf (printf)
+
+import qualified Data.List.NonEmpty as NE
 
 histogram ::  (Eq a, Ord a, Show a) => Int -> [a] -> [String]
 histogram cols = histogram' cols . count
@@ -23,4 +25,4 @@ width :: Show a => [a] -> Int
 width = maximum . map (length . show)
 
 count :: (Eq a, Ord a) => [a] -> [(a, Int)]
-count = map (head &&& length) . group . sort
+count = map (NE.head &&& length) . NE.group . sort

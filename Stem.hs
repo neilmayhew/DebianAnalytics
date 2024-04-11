@@ -8,20 +8,22 @@ import Parse
 
 import Control.Arrow ((&&&), (***), second)
 import Data.Function (on)
-import Data.List (group, groupBy, sort, sortBy)
+import Data.List (sort, sortBy)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Ord (comparing)
 import Network.HTTP (rqURI)
 import Network.URI (pathSegments)
 import System.Environment (getArgs)
 import Text.Printf (printf)
 
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 
 main :: IO ()
 main = do
     [pathIn] <- getArgs
     entries <- map mkEntry <$> parseFile pathIn
-    mapM_ (putStrLn . uncurry (printf "%s\t%s") . (show *** unwords . map show))
+    mapM_ (putStrLn . uncurry (printf "%s\t%s") . (show *** concat . NE.intersperse " " . NE.map show))
         . groupAssociations
         . uniq
         . map (leStem &&& leIP)
@@ -37,12 +39,12 @@ leStem = either (const Nothing) (Just . take 2 . pathSegments . rqURI) . leReq
 multiMapFromList :: Ord a => [(a, b)] -> M.Map a [b]
 multiMapFromList = M.fromListWith (++) . map (second pure)
 
-groupAssociations :: (Eq a, Ord a) => [(a, b)] -> [(a, [b])]
-groupAssociations = map ((fst . head) &&& map snd)
-    . groupBy ((==) `on` fst) . sortBy (comparing fst)
+groupAssociations :: (Eq a, Ord a) => [(a, b)] -> [(a, NonEmpty b)]
+groupAssociations = map ((fst . NE.head) &&& fmap snd)
+    . NE.groupBy ((==) `on` fst) . sortBy (comparing fst)
 
-associateOn :: (Eq a, Ord a) => (b -> a) -> [b] -> [(a, [b])]
+associateOn :: (Eq a, Ord a) => (b -> a) -> [b] -> [(a, NonEmpty b)]
 associateOn f = groupAssociations . map (f &&& id)
 
 uniq :: (Eq a, Ord a) => [a] -> [a]
-uniq = map head . group . sort
+uniq = map NE.head . NE.group . sort

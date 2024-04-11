@@ -19,16 +19,19 @@ import qualified Text.Blaze.Html4.Strict as H
 import qualified Text.Blaze.Html4.Strict.Attributes as A
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashMap.Strict as M
+import qualified Data.List.NonEmpty as NE
 
 import Data.Either
 import Data.Functor ((<$>))
 import Data.Function
 import Data.Hashable
 import Data.IP (IP(..), toHostAddress, toHostAddress6)
-import Data.List
+import Data.List (foldl', intercalate, intersperse, isPrefixOf, nub, sort, sortBy, stripPrefix, transpose)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe
 import Data.String (fromString)
 import Data.Time (UTCTime(..), diffUTCTime)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Tuple
 import Debian.Version (DebianVersion, prettyDebianVersion)
 import GHC.Generics (Generic)
@@ -100,12 +103,12 @@ tabulate :: [Alignment] -> [[String]] -> [String]
 tabulate alignments rows = map formatRow rows
   where
     alignments' = alignments ++ repeat AlignRight
-    formatRow = intercalate " " . map align . zip3 alignments' widths
+    formatRow = unwords . map align . zip3 alignments' widths
     widths = map maximum . transpose . map (map length) $ rows
 
-groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, [b])]
-groupFirsts = map combine . groupBy ((==) `on` fst) . sort
-  where combine = fst . head &&& map snd
+groupFirsts :: (Ord a, Ord b) => [(a, b)] -> [(a, NonEmpty b)]
+groupFirsts = map combine . NE.groupBy ((==) `on` fst) . sort
+  where combine = fst . NE.head &&& fmap snd
 
 -- Calculate a list of items and their counts
 countItems :: (Eq a, Hashable a) => [a] -> [(a, Int)]
@@ -140,7 +143,7 @@ archCounts :: [LogLine] -> [(Arch, Int)]
 archCounts = map (second length) . archUsers
 
 -- Unique users of architectures
-archUsers :: [LogLine] -> [(String, [Addr])]
+archUsers :: [LogLine] -> [(String, NonEmpty Addr)]
 archUsers = groupFirsts . nub . arches . indices
   where
     arches :: [(Addr, FilePath)] -> [(Arch, Addr)]
@@ -164,7 +167,9 @@ isIndex = (=="Packages") . takeBaseName
 -- List package downloads
 putDebs :: [LogLine] -> IO ()
 putDebs entries = putStr . renderHtml . docTypeHtml $ do
-    let (start, end) = (head &&& last) . map llTime $ entries
+    let (start, end) = case NE.nonEmpty entries of
+            Just es -> (NE.head &&& NE.last) $ fmap llTime es
+            Nothing -> let t = posixSecondsToUTCTime 0 in (t, t)
         timespan = show (utctDay start) ++ " – " ++ show (utctDay end)
         debs = extractDebs entries
         arches = sort . countItems . map debArch $ debs
@@ -262,11 +267,11 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
                         toMarkup n
                     H.td ! A.class_ "name" $ do
                         let pkgref p = H.a ! A.href (fromString $ '#':p) $ toMarkup p
-                        sequence_ . intersperse H.br . map pkgref $ ps
+                        sequence_ . intersperse H.br . map pkgref $ NE.toList ps
         H.table ! A.class_ "packages" $ do
             forM_ pkgs $ \(name, dcs) -> do
-                let arches = sort . nub . map (debArch . fst) $ dcs
-                    versions = groupBy ((==) `on` debVersion . fst) dcs
+                let arches = sort . nub . map (debArch . fst) $ NE.toList dcs
+                    versions = NE.groupBy ((==) `on` debVersion . fst) dcs
                 H.tr $ do
                     H.th ! A.class_ "filler" ! A.id (fromString name) $ "\xa0"
                 H.tr $ do
@@ -274,10 +279,10 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
                     forM_ arches $ \a -> do
                         H.th ! A.class_ "count" $ toMarkup a
                 forM_ versions $ \dcs -> do
-                    let archdebs = map (first debArch) dcs
+                    let archdebs = map (first debArch) $ NE.toList dcs
                     H.tr $ do
                         H.td ! A.class_ "name" $ do
-                            toMarkup . show . prettyDebianVersion . debVersion . fst . head $ dcs
+                            toMarkup . show . prettyDebianVersion . debVersion . fst . NE.head $ dcs
                         forM_ arches $ \a -> do
                             H.td ! A.class_ "count" $ do
                                 toMarkup . fromMaybe 0 $ lookup a archdebs
@@ -285,11 +290,11 @@ putDebs entries = putStr . renderHtml . docTypeHtml $ do
                 H.th ! A.class_ "filler" $ "\xa0"
 
 -- List architecture users
-putArchUsers :: [(String, [Addr])] -> IO ()
+putArchUsers :: [(String, NonEmpty Addr)] -> IO ()
 putArchUsers arches = do
     let width = maximum . map (length . fst) $ arches
     forM_ arches $ \(a, ips) ->
-        putStrLn $ printf "%*s %s" width a (intercalate "," ips)
+        putStrLn $ printf "%*s %s" width a (intercalate "," $ NE.toList ips)
 
 -- List architectures
 putArchCounts :: [(String, Int)] -> IO ()
