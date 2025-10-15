@@ -21,26 +21,26 @@ executable Analyze
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: Analyze.hs
     other-modules: Parse Color
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         debian >=3.61 && <4.1,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
-        hashable >=1.2 && <1.5,
-        filepath >=1.3 && <1.5,
+        hashable >=1.2 && <1.6,
+        filepath >=1.3 && <1.6,
         unordered-containers >=0.2 && <0.3,
         blaze-html >=0.6 && <0.10,
         HUnit >=1.2 && <1.7,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: OverloadedStrings StandaloneDeriving
@@ -50,21 +50,21 @@ executable Filter
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: Filter.hs
     other-modules: Parse
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
         MissingH <1.7,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
@@ -74,21 +74,21 @@ executable Status
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: Status.hs
     other-modules: Parse
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
         MissingH <1.7,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
@@ -98,22 +98,22 @@ executable Stem
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: Stem.hs
     other-modules: Parse
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
-        containers >=0.1 && <0.7,
+        containers >=0.1 && <0.8,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
         MissingH <1.7,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
@@ -123,23 +123,23 @@ executable DownloadHours
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: DownloadHours.hs
     other-modules: Parse Histogram
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
-        containers >=0.1 && <0.7,
+        containers >=0.1 && <0.8,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
         MissingH <1.7,
         terminal-size,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
@@ -149,23 +149,23 @@ executable Benchmark
     if flag(network-uri)
         build-depends:
             network-uri >=2.5 && <2.7,
-            network >=2.5 && <3.2
+            network >=2.5 && <3.3
     else
         build-depends:
             network <2.5
     main-is: Benchmark.hs
     other-modules: Parse
     build-depends:
-        base >=4.9 && <4.20,
+        base >=4.9 && <4.22,
         attoparsec >=0.10 && <0.15,
         bytestring >=0.10 && <0.13,
-        containers >=0.1 && <0.7,
+        containers >=0.1 && <0.8,
         criterion -any,
         deepseq -any,
         HTTP >=4000.2 && <4000.5,
         iproute >=1.5 && <1.8,
         MissingH <1.7,
-        time >=1.4 && <1.13,
+        time >=1.4 && <1.15,
         time-locale-compat -any
     default-language: Haskell2010
     other-extensions: StandaloneDeriving
